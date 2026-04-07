@@ -6,6 +6,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [revenue, setRevenue] = useState({ totalRevenue: 0, billsCount: 0 });
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "doctor" });
+  const [avatarFile, setAvatarFile] = useState(null);
   const [filterRole, setFilterRole] = useState("staff");
 
   useEffect(() => {
@@ -37,14 +38,26 @@ export default function AdminDashboard() {
   const createUser = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
+
+    const formData = new FormData();
+    formData.append("name", newUser.name);
+    formData.append("email", newUser.email);
+    formData.append("password", newUser.password);
+    formData.append("role", newUser.role);
+    if (avatarFile) {
+      formData.append("avatar", avatarFile);
+    }
+
     const res = await fetch("http://localhost:8080/api/admin/create-user", {
-      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(newUser)
+      method: "POST", 
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData
     });
     const data = await res.json();
     if(res.ok) {
       alert("User created successfully!");
       setNewUser({ name: "", email: "", password: "", role: "doctor" });
+      setAvatarFile(null);
       fetchData(token);
     } else {
       alert(data.message);
@@ -99,6 +112,10 @@ export default function AdminDashboard() {
                   <option value="pharmacist">Pharmacist</option>
                   <option value="admin">Admin</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">Profile Photo (Optional)</label>
+                <input type="file" accept="image/*" className="w-full border p-1 rounded text-sm text-slate-600 bg-white" onChange={e => setAvatarFile(e.target.files[0])} />
               </div>
               <button type="submit" className="w-full bg-teal-600 text-white font-bold py-2 rounded hover:bg-teal-700 transition-colors">Create User</button>
             </form>

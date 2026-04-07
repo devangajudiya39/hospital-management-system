@@ -51,6 +51,7 @@ export default function Doctor_Des() {
     ...defaultDoctor,
     name: doctorNameDisplay,
     role: userData.role ? (userData.role.charAt(0).toUpperCase() + userData.role.slice(1)) : defaultDoctor.role,
+    avatar: userData.avatar || defaultDoctor.avatar,
   };
 
   const [active,        setActive]        = useState("schedule");

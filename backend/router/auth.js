@@ -64,12 +64,12 @@ authRouter.post("/login", async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user._id, name: user.name, email: user.email, role: user.role },
+            { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },
             JWT_SECRET,
             { expiresIn: "10h" }
         );
 
-        res.json({ message: "Login successful", token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+        res.json({ message: "Login successful", token, user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar } });
     } catch (error) {
         console.error("Login Error:", error);
         res.status(500).json({ message: error.message });

@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     default: "patient" 
   },
   isActive: { type: Boolean, default: true },
+  avatar: { type: String, default: "" },
   resetOtp: { type: String },
   resetOtpExpires: { type: Date }
 }, { timestamps: true });
