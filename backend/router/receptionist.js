@@ -10,7 +10,19 @@ receptionistRouter.use(authenticate, authorizeRole("receptionist", "admin"));
 // Manage Appointments — deep-populate patient name via userId
 receptionistRouter.get("/appointments", async (req, res) => {
     try {
-        const appts = await Appointment.find()
+        let queryDate = req.query.date ? new Date(req.query.date) : new Date();
+        queryDate.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(queryDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Check for raw UTC matching too since booking saves it directly
+        const strictUtcDate = req.query.date ? new Date(req.query.date) : null;
+        
+        const dateQuery = strictUtcDate 
+             ? { $or: [ { date: { $gte: queryDate, $lte: endOfDay } }, { date: strictUtcDate } ] }
+             : { date: { $gte: queryDate, $lte: endOfDay } };
+
+        const appts = await Appointment.find(dateQuery)
             .populate({ path: "patientId", populate: { path: "userId", select: "name email" } })
             .populate("doctorId", "name specialization")
             .sort({ date: -1 });

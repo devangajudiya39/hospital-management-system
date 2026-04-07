@@ -6,6 +6,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [revenue, setRevenue] = useState({ totalRevenue: 0, billsCount: 0 });
   const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "doctor" });
+  const [filterRole, setFilterRole] = useState("staff");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -104,7 +105,28 @@ export default function AdminDashboard() {
           </div>
 
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border">
-            <h2 className="font-bold text-xl text-slate-800 mb-4">Staff Directory</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-bold text-xl text-slate-800">
+                {filterRole === 'staff' ? "Staff Directory" : filterRole === 'patient' ? "Patient Directory" : "All Users"}
+              </h2>
+              <div className="flex bg-slate-100 p-1 rounded-lg">
+                <button 
+                  onClick={() => setFilterRole("staff")} 
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${filterRole === 'staff' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-500 hover:text-slate-700'}`}>
+                  Staff
+                </button>
+                <button 
+                  onClick={() => setFilterRole("patient")} 
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${filterRole === 'patient' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-500 hover:text-slate-700'}`}>
+                  Patients
+                </button>
+                <button 
+                  onClick={() => setFilterRole("all")} 
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${filterRole === 'all' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-500 hover:text-slate-700'}`}>
+                  All
+                </button>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
@@ -117,7 +139,9 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map(u => (
+                  {users
+                    .filter(u => filterRole === 'all' ? true : filterRole === 'staff' ? u.role !== 'patient' : u.role === 'patient')
+                    .map(u => (
                     <tr key={u._id} className="border-b hover:bg-slate-50">
                       <td className="p-3 font-semibold">{u.name}</td>
                       <td className="p-3 text-sm text-slate-500">{u.email}</td>

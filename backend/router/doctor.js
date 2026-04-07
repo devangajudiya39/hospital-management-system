@@ -25,12 +25,21 @@ doctorRouter.get("/schedule", async (req, res) => {
         const doctor = await getDoctorByEmail(req.user.email);
         if (!doctor) return res.status(404).json({ message: "Doctor profile not found" });
 
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
+        let queryDate = req.query.date ? new Date(req.query.date) : new Date();
+        queryDate.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(queryDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Also check if raw strict UTC dates match (some system dates save tightly without offests)
+        const strictUtcDate = req.query.date ? new Date(req.query.date) : null;
+
+        const dateQuery = strictUtcDate 
+             ? { $or: [ { date: { $gte: queryDate, $lte: endOfDay } }, { date: strictUtcDate } ] }
+             : { $gte: queryDate, $lte: endOfDay };
 
         const appointments = await Appointment.find({
             doctorId: doctor._id,
-            date: { $gte: startOfDay }
+            ...(!strictUtcDate ? { date: dateQuery } : dateQuery)
         }).populate({ path: "patientId", populate: { path: "userId", select: "name email" } });
 
         // Flatten for frontend: attach patient name from nested userId

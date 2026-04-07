@@ -38,8 +38,7 @@ adminRouter.patch("/deactivate-user/:id", async (req, res) => {
 // Get users list (for management)
 adminRouter.get("/users", async (req, res) => {
     try {
-        // i want only  doctor, lab staff, pharmacist, receptionist
-        const users = await User.find({ role: { $in: ["doctor", "lab_staff", "pharmacist", "receptionist"] } }).select("-password");
+        const users = await User.find({ role: { $in: ["doctor", "lab_staff", "pharmacist", "receptionist", "patient"] } }).select("-password");
         res.json(users);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -56,8 +55,11 @@ adminRouter.get("/revenue", async (req, res) => {
     const Bill = require("../models/Bill.js");
     try {
         const paidBills = await Bill.find({ status: { $in: ["partially_paid", "paid"] } });
-        const totalRevenue = paidBills.reduce((acc, bill) => acc + bill.partialPaymentReceived + (bill.status === "paid" ? bill.finalAmountDue : 0), 0);
-        res.json({ totalRevenue, billsCount: paidBills.length });
+        const totalRevenue = paidBills.reduce((acc, bill) => {
+            return acc + (bill.status === "paid" ? (bill.totalAmount || 0) : (bill.partialPaymentReceived || 0));
+        }, 0);
+        const billsCount = paidBills.filter(bill => bill.status === "paid").length;
+        res.json({ totalRevenue, billsCount });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

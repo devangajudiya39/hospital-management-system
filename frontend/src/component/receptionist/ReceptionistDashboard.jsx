@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function ReceptionistDashboard() {
   const navigate = useNavigate();
+  const [filterDate, setFilterDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [appointments, setAppointments] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [allocation, setAllocation] = useState({ patientId: "", roomId: "" });
@@ -11,13 +12,13 @@ export default function ReceptionistDashboard() {
     const token = localStorage.getItem("token");
     if (!token) return navigate("/login");
     fetchData(token);
-  }, [navigate]);
+  }, [navigate, filterDate]);
 
   const fetchData = async (token) => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       const [appRes, roomRes] = await Promise.all([
-        fetch("http://localhost:8080/api/receptionist/appointments", { headers }),
+        fetch(`http://localhost:8080/api/receptionist/appointments?date=${filterDate}`, { headers }),
         fetch("http://localhost:8080/api/receptionist/rooms/available", { headers })
       ]);
       if(appRes.ok) setAppointments(await appRes.json());
@@ -60,13 +61,18 @@ export default function ReceptionistDashboard() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-white p-6 rounded-2xl shadow-sm border">
-              <h2 className="font-bold text-xl text-slate-800 mb-4">Today's Appointments</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-bold text-xl text-slate-800">Hospital Appointments</h2>
+                <input type="date" className="border border-slate-200 rounded-lg p-2 text-sm font-semibold text-slate-700 outline-none focus:border-teal-500 transition-colors bg-slate-50" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+              </div>
               <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                 {appointments.map(a => (
                   <div key={a._id} className="p-4 border border-slate-100 rounded-xl bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                       <p className="font-bold text-lg text-slate-800">{a.patientId?.name || "Unknown Patient"}</p>
-                      <p className="text-sm font-semibold text-slate-500">Dr. {a.doctorId?.name || "Unknown"} <span className="mx-2">|</span> <span className="text-teal-600 font-bold">{a.slot}</span></p>
+                      <p className="text-sm font-semibold text-slate-500">
+                        {new Date(a.date).toLocaleDateString()} <span className="mx-2">|</span> Dr. {a.doctorId?.name || "Unknown"} <span className="mx-2">|</span> <span className="text-teal-600 font-bold">{a.slot}</span>
+                      </p>
                     </div>
                     <div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold border 

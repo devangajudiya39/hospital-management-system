@@ -57,6 +57,7 @@ export default function Doctor_Des() {
   const [sideOpen,      setSideOpen]      = useState(false);
 
   // Schedule
+  const [filterDate,    setFilterDate]    = useState(() => new Date().toISOString().split("T")[0]);
   const [appts,         setAppts]         = useState([]);
   const [apptLoading,   setApptLoading]   = useState(true);
 
@@ -97,11 +98,9 @@ export default function Doctor_Des() {
   /* ── FETCH SCHEDULE on mount ── */
   const fetchSchedule = useCallback(() => {
     setApptLoading(true);
-    fetch(`${BASE}/schedule`, { headers: authH() })
+    fetch(`${BASE}/schedule?date=${filterDate}`, { headers: authH() })
       .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setAppts(data.map(a => ({
+      .then(d => { setAppts(Array.isArray(d) ? d.map(a => ({
             _id:       a._id,
             patientId: a.patientId?._id,
             time:      a.slot,
@@ -109,13 +108,10 @@ export default function Doctor_Des() {
             age:       "-",
             reason:    "Consultation",
             status:    a.status,
-          })));
-          if (data.length > 0) setSelPt(data[0]._id);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setApptLoading(false));
-  }, []); // eslint-disable-line
+            date:      a.date
+          })) : []); setApptLoading(false); })
+      .catch((e) => { console.error(e); setApptLoading(false); });
+  }, [filterDate]);
 
   useEffect(() => {
     if (!token()) return navigate("/login");
@@ -393,11 +389,21 @@ export default function Doctor_Des() {
             </div>
           )}
 
-          {/* Date pill */}
-          <div className="mb-5">
+          {/* Global Date Control */}
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 bg-white border border-teal-100 px-3 py-1.5 rounded-full shadow-sm">
               <FaClock className="text-teal-400 text-[10px]" /> {today}
             </span>
+            
+            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-teal-200 shadow-sm">
+              <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Filter Date:</label>
+              <input 
+                type="date" 
+                className="text-sm font-bold text-teal-700 outline-none bg-transparent cursor-pointer" 
+                value={filterDate} 
+                onChange={(e) => setFilterDate(e.target.value)} 
+              />
+            </div>
           </div>
 
           {/* ╔══════════════════════════════════════╗
@@ -411,9 +417,6 @@ export default function Doctor_Des() {
                   <p className="text-xs text-slate-400 font-semibold mt-0.5">
                     {appts.length} appointments · {appts.filter(a => a.status === "completed").length} completed
                   </p>
-                </div>
-                <div className="teal-grad text-white text-xs font-bold px-4 py-2 rounded-full">
-                  {today.split(",")[0]}
                 </div>
               </div>
               {apptLoading ? (
@@ -434,7 +437,10 @@ export default function Doctor_Des() {
                       {appts.map(a => (
                         <tr key={a._id}
                           className={`border-t border-slate-50 hover:bg-teal-50/30 transition-colors ${a._id === selPt ? "bg-teal-50/50" : ""}`}>
-                          <td className="px-5 py-4 font-black text-teal-700 text-sm">{a.time}</td>
+                          <td className="px-5 py-4 font-black text-teal-700 text-sm">
+                            {a.time}
+                            <div className="text-[10px] text-slate-400">{new Date(a.date).toLocaleDateString()}</div>
+                          </td>
                           <td className="px-5 py-4 font-bold text-slate-700 text-sm">{a.name}</td>
                           <td className="px-5 py-4 text-slate-500 text-sm">{a.age}</td>
                           <td className="px-5 py-4 text-slate-500 text-sm">{a.reason}</td>
