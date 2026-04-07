@@ -126,10 +126,10 @@ export default function LabDashboard() {
                     value={result} onChange={e => setResult(e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Upload PDF Report (Optional)</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Upload Photo Report (Optional)</label>
                   <input 
                     type="file" 
-                    accept=".pdf,.jpg,.jpeg,.png" 
+                    accept="image/*" 
                     className="w-full p-2 border-2 border-slate-200 rounded-xl focus:border-teal-500 focus:ring-0 text-sm" 
                     onChange={e => setReportFile(e.target.files[0])} />
                 </div>

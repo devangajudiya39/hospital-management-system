@@ -39,9 +39,29 @@ patientRouter.get("/availability", async (req, res) => {
         const doc = await Doctor.findById(doctorId);
         if(!doc) return res.status(404).json({message: "Doctor not found"});
         
-        // Return dummy slots minus booked slots
-        const allSlots = ["09:00 AM", "10:00 AM", "11:00 AM", "01:00 PM", "02:00 PM", "03:00 PM"];
-        const booked = await Appointment.find({ doctorId, date: new Date(date).setHours(0,0,0,0), status: { $ne: "cancelled" }});
+        // Generate 15 minute interval slots from 09:00 AM to 05:00 PM
+        const allSlots = [];
+        let startHour = 9;
+        let startMin = 0;
+        
+        while (startHour < 17) {
+            let period = startHour >= 12 ? 'PM' : 'AM';
+            let formattedHour = startHour > 12 ? startHour - 12 : startHour;
+            if (formattedHour === 0) formattedHour = 12;
+            let formattedMin = startMin === 0 ? '00' : startMin.toString();
+            let hrPrefix = formattedHour < 10 ? '0' : '';
+            
+            allSlots.push(`${hrPrefix}${formattedHour}:${formattedMin} ${period}`);
+            
+            startMin += 15;
+            if (startMin >= 60) {
+                startMin = 0;
+                startHour++;
+            }
+        }
+
+        // Query accurately (book route saves raw new Date(date))
+        const booked = await Appointment.find({ doctorId, date: new Date(date), status: { $ne: "cancelled" } });
         const bookedSlots = booked.map(b => b.slot);
         
         const availableSlots = allSlots.filter(s => !bookedSlots.includes(s));
@@ -133,6 +153,19 @@ patientRouter.get("/bills", async (req, res) => {
         const patientId = await getPatientId(req.user.id);
         const bills = await Bill.find({ patientId });
         res.json(bills);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+patientRouter.get("/prescriptions", async (req, res) => {
+    try {
+        const patientId = await getPatientId(req.user.id);
+        const Prescription = require("../models/Prescription.js");
+        const prescriptions = await Prescription.find({ patientId })
+            .populate("doctorId", "name")
+            .populate("medicines.medicineId", "name");
+        res.json(prescriptions);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

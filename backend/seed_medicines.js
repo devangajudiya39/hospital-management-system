@@ -58,15 +58,28 @@ const medicinesData = [
 
 mongoose.connect(mongoURI).then(async () => {
     console.log("Connected to MongoDB for seeding...");
+
+    const manufacturers = ["Cipla", "Sun Pharma", "Dr. Reddy's", "Lupin", "Torrent Pharma", "Zydus Cadila", "Pfizer", "GSK", "Mankind Pharma", "Abbott"];
+    
     let added = 0;
-    for (let med of medicinesData) {
+    let updated = 0;
+    
+    for (let i = 0; i < medicinesData.length; i++) {
+        let med = medicinesData[i];
+        // Populate missing schema fields dynamically
+        if(!med.manufacturer) med.manufacturer = manufacturers[i % manufacturers.length];
+        if(!med.description) med.description = `High-quality medical grade ${med.name.split(' ')[0]} prescribed for clinical treatments and rapid recovery.`;
         const exists = await Medicine.findOne({ name: med.name });
         if (!exists) {
             await new Medicine(med).save();
             added++;
+        } else {
+            // Update existing ones seamlessly so DB gets the new schema fields
+            await Medicine.updateOne({ name: med.name }, { $set: { manufacturer: med.manufacturer, description: med.description } });
+            updated++;
         }
     }
-    console.log(`Successfully seeded ${added} new medicines!`);
+    console.log(`Successfully seeded ${added} new medicines and updated ${updated} existing ones!`);
     await mongoose.connection.close();
 }).catch(err => {
     console.error(err);

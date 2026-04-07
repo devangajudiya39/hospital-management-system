@@ -59,23 +59,29 @@ labRouter.post("/upload-report", upload.single("reportFile"), async (req, res) =
         let fileUrl = "";
 
         if (req.file) {
-            const uploadPromise = new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    { resource_type: "auto", folder: "lab_reports" },
-                    (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result);
-                    }
-                );
+            // Check if it's a PDF upload. If so, store as Base64 to bypass Cloudinary's strict 401 PDF delivery rules on free-tier.
+            const isPdf = req.file.mimetype === 'application/pdf' || req.file.originalname?.toLowerCase().endsWith('.pdf');
+            if (isPdf) {
+                fileUrl = "data:application/pdf;base64," + req.file.buffer.toString("base64");
+            } else {
+                const uploadPromise = new Promise((resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        { resource_type: "auto", folder: "lab_reports" },
+                        (error, result) => {
+                            if (error) reject(error);
+                            else resolve(result);
+                        }
+                    );
 
-                const readableStream = new stream.Readable();
-                readableStream.push(req.file.buffer);
-                readableStream.push(null);
-                readableStream.pipe(uploadStream);
-            });
+                    const readableStream = new stream.Readable();
+                    readableStream.push(req.file.buffer);
+                    readableStream.push(null);
+                    readableStream.pipe(uploadStream);
+                });
 
-            const cloudinaryResult = await uploadPromise;
-            fileUrl = cloudinaryResult.secure_url;
+                const cloudinaryResult = await uploadPromise;
+                fileUrl = cloudinaryResult.secure_url;
+            }
         }
 
         const report = new LabReport({

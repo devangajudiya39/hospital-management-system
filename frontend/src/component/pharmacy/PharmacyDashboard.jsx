@@ -6,6 +6,55 @@ export default function PharmacyDashboard() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [newStock, setNewStock] = useState({ name: "", quantity: "", price: "", lowStockThreshold: 10 });
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
+
+  const downloadPDF = async (prescription) => {
+    try {
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+
+      const doc = new jsPDF();
+      
+      // Title
+      doc.setFontSize(18);
+      doc.text("Prescription Information", 105, 15, { align: "center" });
+      
+      // Subtitle
+      doc.setFontSize(12);
+      doc.text(`Patient: ${prescription.patientId?.name || "Unknown"}`, 14, 25);
+      doc.text(`Doctor: Dr. ${prescription.doctorId?.name || "Unknown"}`, 14, 32);
+      doc.text(`Status: ${prescription.status.toUpperCase()}`, 14, 39);
+
+      // Table Data
+      const tableColumn = ["Sr No", "Medicine", "Dose & Frequency", "Duration", "Quantity"];
+      const tableRows = [];
+
+      prescription.medicines.forEach((m, index) => {
+        const rowData = [
+          index + 1,
+          m.medicineId?.name || "Unknown",
+          m.dosage || "-",
+          m.duration || "-",
+          m.quantity || "-"
+        ];
+        tableRows.push(rowData);
+      });
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 45,
+        theme: 'grid',
+        headStyles: { fillColor: [54, 162, 235], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 10, cellPadding: 3 },
+      });
+
+      doc.save(`Prescription_${prescription._id}.pdf`);
+    } catch(err) {
+      console.error(err);
+      alert("Failed to download PDF. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -88,9 +137,17 @@ export default function PharmacyDashboard() {
                       </tbody>
                     </table>
                   </div>
-                  <button onClick={() => dispenseMeds(p._id)} className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold shadow-sm transition-colors text-sm">
-                    Dispense & Auto-Bill Items
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => setSelectedPrescription(p)} className="flex-1 bg-teal-100 hover:bg-teal-200 text-teal-800 font-bold py-2.5 rounded-lg transition-colors text-sm shadow-sm">
+                      👁️ View
+                    </button>
+                    <button onClick={() => downloadPDF(p)} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-2.5 rounded-lg transition-colors text-sm shadow-sm">
+                      📄 PDF
+                    </button>
+                    <button onClick={() => dispenseMeds(p._id)} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold shadow-sm transition-colors text-sm">
+                      Dispense & Bill
+                    </button>
+                  </div>
                 </div>
               ))}
               {!prescriptions.length && (
@@ -149,6 +206,52 @@ export default function PharmacyDashboard() {
           </div>
 
         </div>
+
+        {selectedPrescription && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="bg-teal-800 p-4 flex justify-between items-center">
+                <h3 className="text-white font-bold text-lg">Digital Prescription</h3>
+                <button onClick={() => setSelectedPrescription(null)} className="text-teal-200 hover:text-white font-bold text-2xl">&times;</button>
+              </div>
+              <div className="p-6 overflow-y-auto">
+                <div className="mb-4">
+                  <p className="text-xs text-slate-500 uppercase font-black tracking-wider">Patient Name</p>
+                  <p className="text-lg font-bold text-slate-800">{selectedPrescription.patientId?.name || "Unknown"}</p>
+                  <p className="text-xs text-slate-500 uppercase font-black tracking-wider mt-2">Prescribed By</p>
+                  <p className="text-sm font-bold text-slate-600">Dr. {selectedPrescription.doctorId?.name}</p>
+                </div>
+                <table className="w-full text-sm mt-4 text-left">
+                  <thead>
+                    <tr className="border-b-2 border-slate-200 text-slate-600">
+                      <th className="pb-2">Medicine</th>
+                      <th className="pb-2">Dose & Freq</th>
+                      <th className="pb-2 text-right">Qty</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {selectedPrescription.medicines?.map((m, idx) => (
+                      <tr key={idx}>
+                        <td className="py-3 font-semibold text-teal-800">{m.medicineId?.name || "Unknown"}</td>
+                        <td className="py-3 text-slate-600 font-mono text-xs">{m.dosage} <br/> {m.duration}</td>
+                        <td className="py-3 text-right font-black text-slate-800">{m.quantity}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="bg-slate-50 p-4 border-t flex justify-end gap-3">
+                <button onClick={() => downloadPDF(selectedPrescription)} className="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors shadow-sm">
+                  Download PDF
+                </button>
+                <button onClick={() => setSelectedPrescription(null)} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-sm transition-colors">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
