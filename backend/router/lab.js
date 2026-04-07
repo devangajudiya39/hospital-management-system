@@ -1,10 +1,15 @@
 const express = require("express");
 const labRouter = express.Router();
+const multer = require("multer");
+const stream = require("stream");
+const cloudinary = require("../image_cloud/cloudinary.js");
 const LabRequest = require("../models/LabRequest.js");
 const LabReport = require("../models/LabReport.js");
 const { authenticate, authorizeRole } = require("../middleware/authMiddleware.js");
 
 labRouter.use(authenticate, authorizeRole("lab_staff", "admin"));
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Get pending/in-progress lab requests
 labRouter.get("/requests", async (req, res) => {
@@ -45,11 +50,33 @@ labRouter.patch("/update-status/:id", async (req, res) => {
 });
 
 // Upload Report
-labRouter.post("/upload-report", async (req, res) => {
-    const { requestId, resultDetails, fileUrl } = req.body;
+labRouter.post("/upload-report", upload.single("reportFile"), async (req, res) => {
+    const { requestId, resultDetails } = req.body;
     try {
         const request = await LabRequest.findById(requestId);
         if (!request) return res.status(404).json({ message: "Lab request not found" });
+
+        let fileUrl = "";
+
+        if (req.file) {
+            const uploadPromise = new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    { resource_type: "auto", folder: "lab_reports" },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+
+                const readableStream = new stream.Readable();
+                readableStream.push(req.file.buffer);
+                readableStream.push(null);
+                readableStream.pipe(uploadStream);
+            });
+
+            const cloudinaryResult = await uploadPromise;
+            fileUrl = cloudinaryResult.secure_url;
+        }
 
         const report = new LabReport({
             requestId,

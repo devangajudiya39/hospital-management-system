@@ -176,6 +176,11 @@ export default function PatientDashboard() {
                     <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">READY</span>
                   </p>
                   <p className="text-xs text-slate-600 font-mono mt-2">{r.resultDetails}</p>
+                  {r.fileUrl && (
+                    <a href={r.fileUrl} target="_blank" rel="noreferrer" className="inline-block mt-3 bg-teal-100 hover:bg-teal-200 text-teal-800 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                      📄 View PDF Report
+                    </a>
+                  )}
                 </div>
               )) : (
                 <div className="h-full flex items-center justify-center text-slate-400 font-semibold text-sm">No lab reports available</div>

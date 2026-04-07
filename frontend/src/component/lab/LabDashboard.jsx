@@ -5,6 +5,7 @@ export default function LabDashboard() {
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [result, setResult] = useState("");
+  const [reportFile, setReportFile] = useState(null);
   const [selectedReq, setSelectedReq] = useState(null);
 
   useEffect(() => {
@@ -25,14 +26,23 @@ export default function LabDashboard() {
   const uploadReport = async () => {
     if(!selectedReq || !result) return alert("Select test and enter result");
     const token = localStorage.getItem("token");
+
+    const formData = new FormData();
+    formData.append("requestId", selectedReq._id);
+    formData.append("resultDetails", result);
+    if (reportFile) {
+      formData.append("reportFile", reportFile);
+    }
+
     const res = await fetch("http://localhost:8080/api/lab/upload-report", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ requestId: selectedReq._id, resultDetails: result, fileUrl: "" })
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData
     });
     if(res.ok) {
       alert("Report Uploaded Successfully!");
       setResult("");
+      setReportFile(null);
       setSelectedReq(null);
       fetchRequests(token);
     } else {
@@ -114,6 +124,14 @@ export default function LabDashboard() {
                     rows="6" 
                     placeholder="E.g. Hb: 13.2 g/dL - WBC: 8,200 - All within normal range."
                     value={result} onChange={e => setResult(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Upload PDF Report (Optional)</label>
+                  <input 
+                    type="file" 
+                    accept=".pdf,.jpg,.jpeg,.png" 
+                    className="w-full p-2 border-2 border-slate-200 rounded-xl focus:border-teal-500 focus:ring-0 text-sm" 
+                    onChange={e => setReportFile(e.target.files[0])} />
                 </div>
                 <button onClick={uploadReport} className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-colors text-lg shadow-sm">
                   Sign & Submit Report

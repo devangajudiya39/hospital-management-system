@@ -789,8 +789,13 @@ export default function Doctor_Des() {
                           }
                         </div>
                         {r.resultDetails && (
-                          <div className="bg-white border border-teal-100 rounded-xl px-4 py-3 text-sm text-slate-600 font-semibold">
-                            {r.resultDetails}
+                          <div className="bg-white border border-teal-100 rounded-xl px-4 py-3 text-sm text-slate-600 font-semibold flex justify-between items-center">
+                            <span>{r.resultDetails}</span>
+                            {r.fileUrl && (
+                              <a href={r.fileUrl} target="_blank" rel="noreferrer" className="text-teal-600 hover:text-teal-800 underline text-xs ml-4 flex-shrink-0 flex items-center gap-1">
+                                <FaFileMedical /> View PDF
+                              </a>
+                            )}
                           </div>
                         )}
                       </div>
