@@ -202,7 +202,8 @@ const HospitalHomepage = () => {
             </p>
 
             <div className="fade-up-3 flex flex-col sm:flex-row gap-4">
-              <button className="group flex items-center justify-center gap-2.5 px-8 py-4 teal-grad text-white font-black rounded-2xl shadow-xl shadow-teal-600/40 hover:scale-105 transition-all duration-200 text-base">
+              <button className="group flex items-center justify-center gap-2.5 px-8 py-4 teal-grad text-white font-black rounded-2xl shadow-xl shadow-teal-600/40 hover:scale-105 transition-all duration-200 text-base"
+              onClick={ () => navigate("/login") }>
                 <FaCalendarCheck /> Book Appointment
                 <FaArrowRight className="text-sm group-hover:translate-x-1 transition-transform" />
               </button>
@@ -327,7 +328,8 @@ const HospitalHomepage = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-3 w-full md:w-auto">
-                <button className="flex items-center justify-center gap-2.5 px-8 py-4 bg-white text-teal-700 font-black rounded-2xl shadow-lg hover:bg-teal-50 transition-all hover:scale-105 whitespace-nowrap">
+                <button className="flex items-center justify-center gap-2.5 px-8 py-4 bg-white text-teal-700 font-black rounded-2xl shadow-lg hover:bg-teal-50 transition-all hover:scale-105 whitespace-nowrap"
+                onClick={ () => navigate("/login") }>
                   <FaCalendarCheck /> Book Appointment →
                 </button>
                 <button className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white/20 border-2 border-white/40 text-white font-bold rounded-2xl hover:bg-white/30 transition-all whitespace-nowrap">
