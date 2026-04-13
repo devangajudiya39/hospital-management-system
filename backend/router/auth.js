@@ -3,7 +3,7 @@ const authRouter = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.js");
 const { JWT_SECRET, authenticate, authorizeRole } = require("../middleware/authMiddleware.js");
-const { sendEmail } = require("../emails_services/EmailSerbvices.js");
+const { sendEmail } = require("../emails_services/EmailServices.js");
 
 // Send welcome/test email
 async function sendtestEmail(req, res) {

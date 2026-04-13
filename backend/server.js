@@ -15,7 +15,7 @@ app.use(cors({
 }));
 
 // DB Connection
-const mongoURI = "mongodb+srv://devangajudiya39_db_user:Devang543@cluster0.dqvkelh.mongodb.net/hospital-management-system";
+const mongoURI = process.env.MONGODB_URI;
 mongoose.connect(mongoURI).then(() => {
     console.log("Connected to MongoDB database");
 }).catch((err) => {

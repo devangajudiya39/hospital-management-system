@@ -5,7 +5,7 @@ const stream = require("stream");
 const cloudinary = require("../image_cloud/cloudinary.js");
 const User = require("../models/user.js");
 const { authenticate, authorizeRole } = require("../middleware/authMiddleware.js");
-const { sendEmail } = require("../emails_services/EmailSerbvices.js");
+const { sendEmail } = require("../emails_services/EmailServices.js");
 
 
 // All admin routes are protected
