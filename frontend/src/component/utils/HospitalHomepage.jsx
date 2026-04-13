@@ -325,7 +325,7 @@ const HospitalHomepage = () => {
                   <span className="flex items-center gap-2"><FaCheckCircle className="text-emerald-300" /> No Long Wait Times</span>
                   <span className="flex items-center gap-2"><FaCheckCircle className="text-emerald-300" /> Online & In-Person</span>
                   <span className="flex items-center gap-2"><FaCheckCircle className="text-emerald-300" /> All Insurances</span>
-                </div>
+                </div> 
               </div>
               <div className="flex flex-col gap-3 w-full md:w-auto">
                 <button className="flex items-center justify-center gap-2.5 px-8 py-4 bg-white text-teal-700 font-black rounded-2xl shadow-lg hover:bg-teal-50 transition-all hover:scale-105 whitespace-nowrap"
