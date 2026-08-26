@@ -27,6 +27,7 @@ function App() {
         <Route path="/receptionist-dashboard" element={<ReceptionistDashboard />} />
         <Route path="/pharmacist-dashboard" element={<PharmacyDashboard />} />
         <Route path="/lab_staff-dashboard" element={<LabDashboard />} />
+        <Route path="/document-digitization" element={<DocumentDigitizationPage />} />
       </Routes>
     </BrowserRouter>
   )
