@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../ops/docker/Dockerfile.backend
+    ports:
+      - "8080:8080"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../ops/docker/Dockerfile.frontend
+    ports:
+      - "5173:5173"
+
