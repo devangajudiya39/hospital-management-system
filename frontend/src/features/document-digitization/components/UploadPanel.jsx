@@ -1,23 +1,26 @@
-import React from 'react';
+// frontend/src/features/document-digitization/components/UploadPanel.jsx
+import React from "react";
 
-export function UploadPanel({ onUpload, isLoading }) {
+export default function UploadPanel({ onFileUpload, isProcessing }) {
   const handleChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      onUpload(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file && onFileUpload) {
+      onFileUpload(file);
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-teal-100 shadow-sm">
-      <h3 className="font-semibold text-slate-800 mb-1">Upload Medical Document</h3>
-      <p className="text-xs text-slate-500 mb-4">Upload handwritten/printed prescriptions or lab reports.</p>
+    <div className="p-6 border-2 border-dashed border-slate-300 rounded-xl bg-white text-center hover:border-teal-500 transition-colors">
+      <h3 className="text-lg font-semibold text-slate-700">Upload Lab Report / Document</h3>
+      <p className="text-xs text-slate-500 mt-1 mb-4">Upload a PDF to extract clinical entities & LOINC data</p>
       
-      <label className="flex flex-col items-center justify-center border-2 border-dashed border-teal-300 hover:border-teal-500 bg-teal-50/20 p-6 rounded-xl cursor-pointer">
-        <span className="text-sm font-medium text-teal-700">
-          {isLoading ? "Running OCR Extraction..." : "Choose File or Drop Here"}
-        </span>
-        <input type="file" className="hidden" onChange={handleChange} disabled={isLoading} accept="image/*,.pdf" />
-      </label>
+      <input
+        type="file"
+        accept="application/pdf"
+        onChange={handleChange}
+        disabled={isProcessing}
+        className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer disabled:opacity-50"
+      />
     </div>
   );
 }

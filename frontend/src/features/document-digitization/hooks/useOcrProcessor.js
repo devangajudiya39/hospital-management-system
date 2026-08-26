@@ -1,23 +1,39 @@
-import { useState } from 'react';
-import { processDocumentOCR } from '../services/ocrService';
+import { useState } from "react";
+import { extractTextFromPDF, processLabReport } from "../services/ocrService";
 
 export function useOcrProcessor() {
-  const [loading, setLoading] = useState(false);
-  const [documents, setDocuments] = useState([]);
-  const [selectedDoc, setSelectedDoc] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [rawTextLines, setRawTextLines] = useState([]);
+  const [extractedEntities, setExtractedEntities] = useState([]);
+  const [error, setError] = useState(null);
 
   const processFile = async (file) => {
-    setLoading(true);
+    if (!file) return;
+
+    setIsProcessing(true);
+    setError(null);
+
     try {
-      const result = await processDocumentOCR(file);
-      setDocuments((prev) => [result, ...prev]);
-      setSelectedDoc(result);
+      // 1. Extract raw text lines from PDF
+      const lines = await extractTextFromPDF(file);
+      setRawTextLines(lines);
+
+      // 2. Parse entities, evaluate ranges, and fetch LOINC metadata
+      const entities = await processLabReport(lines);
+      setExtractedEntities(entities);
     } catch (err) {
-      console.error("OCR Processing failed", err);
+      console.error("OCR Processor Error:", err);
+      setError(err.message || "Failed to parse document.");
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
 
-  return { loading, documents, selectedDoc, setSelectedDoc, processFile };
+  return {
+    isProcessing,
+    rawTextLines,
+    extractedEntities,
+    error,
+    processFile,
+  };
 }

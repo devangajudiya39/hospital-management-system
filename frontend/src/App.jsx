@@ -11,6 +11,7 @@ import AdminDashboard from './component/admin/AdminDashboard';
 import ReceptionistDashboard from './component/receptionist/ReceptionistDashboard';
 import PharmacyDashboard from './component/pharmacy/PharmacyDashboard';
 import LabDashboard from './component/lab/LabDashboard';
+import DocumentDigitizationPage from './features/document-digitization';
 
 function App() {
   return (

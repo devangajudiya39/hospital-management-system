@@ -1,3 +1,5 @@
-import DocumentDigitizationPage from './pages/DocumentDigitizationPage';
+// frontend/src/features/document-digitization/index.js
+import DocumentDigitizationPage from "./pages/DocumentDigitizationPage";
 
-export default DocumentDigitizationPage;
+export { DocumentDigitizationPage };
+export default DocumentDigitizationPage; // Fixed typo (removed extra 'a')
