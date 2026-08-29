@@ -22,6 +22,14 @@ mongoose.connect(mongoURI).then(() => {
     console.error("Error connecting to database", err);
 });
 
+// Redis Connection
+const { connectRedis } = require("./redisClient");
+connectRedis();
+
+// RabbitMQ Connection
+const { connectRabbitMQ } = require("./rabbitmqClient");
+connectRabbitMQ();
+
 // Routers
 const authRouter = require("./router/auth.js");
 const adminRouter = require("./router/admin.js");
@@ -45,6 +53,10 @@ app.use("/api/billing", billRouter);
 
 app.get("/", (req, res) => {
     res.send("HMS API is running.");
+});
+
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok" });
 });
 
 app.listen(port, () => {

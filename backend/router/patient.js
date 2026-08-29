@@ -14,7 +14,13 @@ patientRouter.use(authenticate, authorizeRole("patient", "admin", "receptionist"
 // ─── GET ALL DOCTORS (for booking dropdown) ───────────────────────────────────
 patientRouter.get("/doctors", async (req, res) => {
     try {
+        const { getCache, setCache } = require("../redisClient");
+        const cacheKey = "patient:doctors:list";
+        const cached = await getCache(cacheKey);
+        if (cached) return res.json(cached);
+
         const doctors = await Doctor.find({}, "name specialization email _id");
+        await setCache(cacheKey, doctors, 3600); // 1 hour TTL
         res.json(doctors);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -32,10 +38,30 @@ const getPatientId = async (userId) => {
     return patient._id;
 };
 
+// Helper to normalize date to YYYY-MM-DD
+const normalizeDate = (dateInput) => {
+    try {
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return null;
+        return d.toISOString().split('T')[0];
+    } catch (e) {
+        return null;
+    }
+};
+
 // Check Doctor Availability
 patientRouter.get("/availability", async (req, res) => {
     const { doctorId, date } = req.query;
+    
+    const normalizedDate = normalizeDate(date);
+    if (!normalizedDate) return res.status(400).json({ message: "Invalid date format" });
+
     try {
+        const { getCache, setCache } = require("../redisClient");
+        const cacheKey = `patient:availability:${doctorId}:${normalizedDate}`;
+        const cached = await getCache(cacheKey);
+        if (cached) return res.json(cached);
+
         const doc = await Doctor.findById(doctorId);
         if(!doc) return res.status(404).json({message: "Doctor not found"});
         
@@ -65,7 +91,10 @@ patientRouter.get("/availability", async (req, res) => {
         const bookedSlots = booked.map(b => b.slot);
         
         const availableSlots = allSlots.filter(s => !bookedSlots.includes(s));
-        res.json({ availableSlots });
+        
+        const responseData = { availableSlots };
+        await setCache(cacheKey, responseData, 300); // 5 min TTL
+        res.json(responseData);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -92,6 +121,12 @@ patientRouter.post("/book", async (req, res) => {
         });
         await appt.save();
 
+        const { delCache } = require("../redisClient");
+        const normalizedDate = normalizeDate(appt.date);
+        if (normalizedDate) {
+            await delCache(`patient:availability:${doctorId}:${normalizedDate}`);
+        }
+
         res.status(201).json({ message: "Appointment booked successfully", appointment: appt });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -106,6 +141,13 @@ patientRouter.post("/cancel", async (req, res) => {
         
         appt.status = "cancelled";
         await appt.save();
+
+        const { delCache } = require("../redisClient");
+        const normalizedDate = normalizeDate(appt.date);
+        if (normalizedDate) {
+            await delCache(`patient:availability:${appt.doctorId}:${normalizedDate}`);
+        }
+        
         res.json({ message: "Appointment cancelled" });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -118,10 +160,23 @@ patientRouter.post("/reschedule", async (req, res) => {
         const appt = await Appointment.findById(appointmentId);
         if (!appt) return res.status(404).json({ message: "Appointment not found" });
 
+        const oldDateNormalized = normalizeDate(appt.date);
+        
         appt.date = new Date(newDate);
         appt.slot = newSlot;
         appt.status = "rescheduled";
         await appt.save();
+
+        const { delCache } = require("../redisClient");
+        if (oldDateNormalized) {
+            await delCache(`patient:availability:${appt.doctorId}:${oldDateNormalized}`);
+        }
+        
+        const newDateNormalized = normalizeDate(appt.date);
+        if (newDateNormalized && newDateNormalized !== oldDateNormalized) {
+            await delCache(`patient:availability:${appt.doctorId}:${newDateNormalized}`);
+        }
+
         res.json({ message: "Appointment rescheduled successfully", appointment: appt });
     } catch (err) {
         res.status(500).json({ message: err.message });

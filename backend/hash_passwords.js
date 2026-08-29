@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const User = require("./models/user.js");
 
-const mongoURI = "mongodb+srv://devangajudiya39_db_user:Devang543@cluster0.dqvkelh.mongodb.net/hospital-management-system";
+const mongoURI = process.env.MONGODB_URI;
 
 mongoose.connect(mongoURI).then(async () => {
     console.log("Connected to DB to fix passwords...");

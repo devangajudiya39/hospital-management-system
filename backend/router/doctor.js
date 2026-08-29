@@ -225,7 +225,13 @@ doctorRouter.get("/rooms", async (req, res) => {
 // ─── GET MEDICINES (for prescription dropdown) ───────────────────────────────
 doctorRouter.get("/medicines", async (req, res) => {
     try {
+        const { getCache, setCache } = require("../redisClient");
+        const cacheKey = "doctor:medicines:available";
+        const cached = await getCache(cacheKey);
+        if (cached) return res.json(cached);
+
         const meds = await Medicine.find({ stockQuantity: { $gt: 0 } });
+        await setCache(cacheKey, meds, 300); // 5 min TTL
         res.json(meds);
     } catch (err) {
         res.status(500).json({ message: err.message });
