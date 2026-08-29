@@ -5,7 +5,7 @@ const stream = require("stream");
 const cloudinary = require("../image_cloud/cloudinary.js");
 const User = require("../models/user.js");
 const { authenticate, authorizeRole } = require("../middleware/authMiddleware.js");
-const { sendEmail } = require("../emails_services/EmailServices.js");
+const { publishJob } = require("../rabbitmqClient.js");
 
 
 // All admin routes are protected
@@ -42,30 +42,34 @@ adminRouter.post("/create-user", upload.single("avatar"), async (req, res) => {
         const newUser = new User({ name, email, password, role, isActive: true, avatar: avatarUrl });
         await newUser.save();
 
-        try {
-            const emailSubject = "Welcome to Hospital Management System";
-            const emailBody = `
-                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <h2 style="color: #0056b3;">Hello ${name},</h2>
-                    <p>An administrative account has been carefully created for you on the <strong>Hospital Management System</strong>.</p>
-                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                        <p style="margin: 5px 0;"><strong>Your Assigned Role:</strong> <span style="color: #0056b3; font-weight: bold; text-transform: capitalize;">${role}</span></p>
-                        <p style="margin: 5px 0;"><strong>Your Login Email:</strong> ${email}</p>
-                        <p style="margin: 5px 0;"><strong>Your Temporary Password:</strong> ${password}</p>
-                    </div>
-                    <p>Please log in using the credentials established. It is recommended to update your password if the system permits.</p>
-                    <br>
-                    <p>Best Regards,</p>
-                    <p><strong>Hospital Administration Team</strong></p>
+        const emailSubject = "Welcome to Hospital Management System";
+        const emailBody = `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #0056b3;">Hello ${name},</h2>
+                <p>An administrative account has been carefully created for you on the <strong>Hospital Management System</strong>.</p>
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>Your Assigned Role:</strong> <span style="color: #0056b3; font-weight: bold; text-transform: capitalize;">${role}</span></p>
+                    <p style="margin: 5px 0;"><strong>Your Login Email:</strong> ${email}</p>
+                    <p style="margin: 5px 0;"><strong>Your Temporary Password:</strong> ${password}</p>
                 </div>
-            `;
-            await sendEmail(email, emailSubject, emailBody);
+                <p>Please log in using the credentials established. It is recommended to update your password if the system permits.</p>
+                <br>
+                <p>Best Regards,</p>
+                <p><strong>Hospital Administration Team</strong></p>
+            </div>
+        `;
+        let emailQueued = false;
+        try {
+            emailQueued = await publishJob('email.queue', { to: email, subject: emailSubject, body: emailBody });
         } catch (emailError) {
-            console.error("Error sending welcome email:", emailError);
-            // We do not stop the request since the user was created successfully
+            console.error("Error queueing welcome email:", emailError);
         }
 
-        res.status(201).json({ message: "User created successfully", user: { id: newUser._id, email: newUser.email, role: newUser.role, avatar: newUser.avatar } });
+        if (emailQueued) {
+            res.status(201).json({ message: "User created successfully and welcome email queued", user: { id: newUser._id, email: newUser.email, role: newUser.role, avatar: newUser.avatar } });
+        } else {
+            res.status(201).json({ message: "User created successfully. Welcome email could not be queued.", user: { id: newUser._id, email: newUser.email, role: newUser.role, avatar: newUser.avatar } });
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

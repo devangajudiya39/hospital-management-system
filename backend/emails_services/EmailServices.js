@@ -12,14 +12,23 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendEmail = async (tomail, subject, body) => {
-  const info = await transporter.sendMail({
-    from: process.env.FROM_EMAIL,
-    to: tomail,
-    subject,
-    html: body,
-  });
+  if (!process.env.SMTP_HOST) {
+    console.warn("⚠️ SMTP configuration is missing. Skipping email to:", tomail);
+    return;
+  }
 
-  console.log("✅ Email sent:", info.messageId);
+  try {
+    const info = await transporter.sendMail({
+      from: process.env.FROM_EMAIL,
+      to: tomail,
+      subject,
+      html: body,
+    });
+    console.log("✅ Email sent:", info.messageId);
+  } catch (error) {
+    console.error("❌ Email sending failed:", error.message);
+    throw error;
+  }
 };
 
 module.exports = { sendEmail }; 

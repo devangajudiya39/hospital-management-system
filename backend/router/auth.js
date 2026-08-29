@@ -3,7 +3,7 @@ const authRouter = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.js");
 const { JWT_SECRET, authenticate, authorizeRole } = require("../middleware/authMiddleware.js");
-const { sendEmail } = require("../emails_services/EmailServices.js");
+const { publishJob } = require("../rabbitmqClient.js");
 
 // Send welcome/test email
 async function sendtestEmail(req, res) {
@@ -14,11 +14,16 @@ async function sendtestEmail(req, res) {
             subject: "Test Email from HMS",
             body: `<p>Hello ${name},</p><p>Welcome to the Hospital Management System.</p>`
         };
-        await sendEmail(payload.to, payload.subject, payload.body);
-        return res.json({ status: 200, message: "Email sent successfully" });
+        const queued = await publishJob('email.queue', { to: payload.to, subject: payload.subject, body: payload.body });
+        
+        if (queued) {
+            return res.json({ status: 200, message: "Email job queued successfully" });
+        } else {
+            return res.status(500).json({ message: "Failed to queue email job. RabbitMQ may be unavailable." });
+        }
     } catch (err) {
         console.log(err.message);
-        res.status(500).json({ message: "Failed to send email" });
+        res.status(500).json({ message: "Failed to process email request" });
     }
 }
 
@@ -123,11 +128,15 @@ authRouter.post("/forgot-password", async (req, res) => {
             <p>If you did not request this, please safely ignore this email.</p>
         `;
 
-        await sendEmail(email, subject, body);
-        res.json({ message: "A 6-digit OTP has been sent to your email" });
+        const queued = await publishJob('email.queue', { to: email, subject, body });
+        if (queued) {
+            res.json({ message: "A 6-digit OTP has been queued for sending to your email" });
+        } else {
+            res.json({ message: "OTP generated successfully, but the email service is currently unavailable. Please contact support or try again later." });
+        }
     } catch (error) {
         console.error("Forgot Password Error:", error);
-        res.status(500).json({ message: "Failed to send reset OTP" });
+        res.status(500).json({ message: "Failed to process reset OTP request" });
     }
 });
 

@@ -75,6 +75,9 @@ pharmacyRouter.post("/dispense/:id", async (req, res) => {
             await newBill.save();
         }
 
+        const { delCache } = require("../redisClient");
+        await delCache("doctor:medicines:available");
+
         res.json({ message: "Medicines dispensed and stock deductive. Billing updated.", prescription });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -87,11 +90,14 @@ pharmacyRouter.post("/stock", async (req, res) => {
         const { name, quantity, price, lowStockThreshold } = req.body;
         
         let med = await Medicine.findOne({ name: { $regex: new RegExp(`^${name}$`, "i") } });
+        const { delCache } = require("../redisClient");
+
         if (med) {
             med.stockQuantity += quantity;
             med.unitPrice = price; // update price if needed
             med.lowStockThreshold = lowStockThreshold;
             await med.save();
+            await delCache("doctor:medicines:available");
             return res.status(200).json({ message: "Stock updated successfully", medicine: med });
         }
         
@@ -102,6 +108,7 @@ pharmacyRouter.post("/stock", async (req, res) => {
             lowStockThreshold 
         });
         await newMed.save();
+        await delCache("doctor:medicines:available");
         res.status(201).json({ message: "Medicine added to inventory", medicine: newMed });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -127,6 +134,9 @@ pharmacyRouter.patch("/update-stock/:id", async (req, res) => {
 
         med.stockQuantity += Number(quantityToAdd);
         await med.save();
+
+        const { delCache } = require("../redisClient");
+        await delCache("doctor:medicines:available");
 
         const alert = med.stockQuantity <= med.lowStockThreshold ? ` ALERT: Low stock for ${med.name}` : "";
         res.json({ message: `Stock updated.${alert}`, medicine: med });
