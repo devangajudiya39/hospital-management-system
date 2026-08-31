@@ -1,15 +1,35 @@
 const mockInterview = require('./mocks/mockInterviewData');
 
-async function generateSummary(interviewData = mockInterview) {
-  const prompt = `
-You are a clinical summarizer. Given this structured patient interview,
-produce a concise physician-facing summary in the following fixed format:
-Chief Complaint, HPI, Past History, Drug History, Family History, Personal History, ROS.
+async function generateSummary(incomingInterviewData, incomingTimeline) {
+  // Fallback gracefully to mocks if other modules haven't sent data yet
+  const interviewData = incomingInterviewData || mockInterview;
+  const documentTimeline = Array.isArray(incomingTimeline) ? incomingTimeline : [];
 
-Interview data:
+  const prompt = `
+You are an expert clinical summarizer for a hospital kiosk system. 
+Synthesize the following structured patient interview data and historical document timeline into a clinical summary.
+
+Patient Interview Data:
 ${JSON.stringify(interviewData, null, 2)}
 
-Respond ONLY as JSON matching: {"chiefComplaint":"","hpi":"","pastHistory":"","drugHistory":"","familyHistory":"","personalHistory":"","ros":[]}
+Digitized Document Timeline (from Module B - OCR/Extraction):
+${JSON.stringify(documentTimeline, null, 2)}
+
+Respond ONLY as a valid JSON object matching this exact structure:
+{
+  "chiefComplaint": "string",
+  "hpi": "string",
+  "pastHistory": "string",
+  "drugHistory": "string",
+  "familyHistory": "string",
+  "personalHistory": "string",
+  "ros": ["string"],
+  "investigations": [{"name": "string", "value": "string", "flag": "string"}],
+  "languageOutputs": {
+    "en": "English clinical summary paragraph combining chief complaint and HPI.",
+    "hi": "Hindi translation of the clinical summary."
+  }
+}
 `;
 
   const response = await fetch(
@@ -26,11 +46,30 @@ Respond ONLY as JSON matching: {"chiefComplaint":"","hpi":"","pastHistory":"","d
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error?.message || 'Gemini API request failed');
+    throw new Error(data.error?.message || 'Gemini API summarization failed');
   }
 
   const text = data.candidates[0].content.parts[0].text;
-  return JSON.parse(text.replace(/```json|```/g, '').trim());
+  let parsed;
+  try {
+    parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+  } catch (parseErr) {
+    throw new Error('Failed to parse LLM structured output format.');
+  }
+
+  // Merge and normalize Devang's document timeline securely
+  const normalizedTimeline = documentTimeline.length > 0 
+    ? documentTimeline.map(item => ({
+        date: item.date ? new Date(item.date) : new Date(),
+        event: item.event || item.title || 'Digitized Document Record',
+        sourceDocument: item.sourceDocument || item.documentType || 'Kiosk Upload'
+      }))
+    : [{ date: new Date(), event: 'Initial kiosk intake synchronized', sourceDocument: 'System Default' }];
+
+  return {
+    ...parsed,
+    documentTimeline: normalizedTimeline
+  };
 }
 
 module.exports = { generateSummary };
