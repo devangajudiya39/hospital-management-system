@@ -1,0 +1,813 @@
+/* =========================================================
+   MEDIKIOSK
+   Visual language matched to MultiSpecialist Hospital UI
+   ========================================================= */
+
+.kiosk-page {
+  --kiosk-teal: #4db3a8;
+  --kiosk-teal-dark: #378f88;
+  --kiosk-teal-light: #79d8c9;
+  --kiosk-mint: #e8f8f5;
+  --kiosk-navy: #1f2942;
+  --kiosk-muted: #71809a;
+  --kiosk-border: #dce8e7;
+  --kiosk-white: #ffffff;
+
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fffd 0%,
+      #eefbf8 45%,
+      #f8fbff 100%
+    );
+
+  color: var(--kiosk-navy);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+
+/* =========================================================
+   BACKGROUND DECORATION
+   ========================================================= */
+
+.kiosk-decoration {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.kiosk-decoration-one {
+  width: 420px;
+  height: 420px;
+
+  top: -210px;
+  right: -100px;
+
+  background: rgba(77, 179, 168, 0.12);
+}
+
+.kiosk-decoration-two {
+  width: 300px;
+  height: 300px;
+
+  bottom: -170px;
+  left: -100px;
+
+  background: rgba(121, 216, 201, 0.10);
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.kiosk-header {
+  position: relative;
+  z-index: 10;
+
+  height: 78px;
+  min-height: 78px;
+
+  padding: 0 6%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  border-bottom: 1px solid rgba(77, 179, 168, 0.15);
+
+  box-shadow:
+    0 3px 15px rgba(31, 41, 66, 0.04);
+
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.kiosk-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.kiosk-logo {
+  width: 50px;
+  height: 50px;
+
+  border-radius: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      145deg,
+      #53b9ad,
+      #3d9e95
+    );
+
+  color: white;
+
+  font-size: 24px;
+
+  box-shadow:
+    0 6px 15px rgba(61, 158, 149, 0.20);
+}
+
+.kiosk-brand-text h1 {
+  margin: 0;
+
+  font-size: 21px;
+  font-weight: 700;
+
+  letter-spacing: -0.4px;
+
+  color: var(--kiosk-navy);
+}
+
+.kiosk-brand-text span {
+  display: block;
+
+  margin-top: 2px;
+
+  font-size: 11px;
+  font-weight: 500;
+
+  letter-spacing: 2px;
+
+  color: var(--kiosk-teal-dark);
+}
+
+
+/* =========================================================
+   LANGUAGE BUTTON
+   ========================================================= */
+
+.kiosk-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.kiosk-language-button {
+  min-width: 150px;
+  min-height: 58px;
+
+  padding: 0 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  border: 1.5px solid #91ded5;
+
+  border-radius: 15px;
+
+  background: white;
+
+  color: var(--kiosk-teal-dark);
+
+  font-size: 17px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    0.25s ease;
+}
+
+.kiosk-language-button svg {
+  font-size: 22px;
+}
+
+.kiosk-language-button:hover {
+  background: var(--kiosk-mint);
+
+  border-color: var(--kiosk-teal);
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   LANGUAGE PANEL
+   ========================================================= */
+
+.kiosk-language-panel {
+  position: absolute;
+
+  z-index: 20;
+
+  top: 125px;
+  right: 7%;
+
+  width: 360px;
+
+  padding: 25px;
+
+  background: white;
+
+  border-radius: 20px;
+
+  border: 1px solid var(--kiosk-border);
+
+  box-shadow:
+    0 18px 45px rgba(31, 41, 66, 0.14);
+
+  animation:
+    kioskPanelIn 0.2s ease;
+}
+
+@keyframes kioskPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.language-panel-header {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 20px;
+}
+
+.language-panel-header svg {
+  color: var(--kiosk-teal);
+
+  font-size: 26px;
+}
+
+.language-panel-header h2 {
+  margin: 0;
+
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.language-options {
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.language-option {
+  width: 100%;
+  min-height: 64px;
+
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border: 1.5px solid var(--kiosk-border);
+
+  border-radius: 13px;
+
+  background: white;
+
+  color: var(--kiosk-navy);
+
+  font-size: 19px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.language-option:hover {
+  border-color: var(--kiosk-teal);
+
+  background: var(--kiosk-mint);
+}
+
+.language-option.active {
+  border-color: var(--kiosk-teal);
+
+  background: #edf9f7;
+
+  color: var(--kiosk-teal-dark);
+
+  font-weight: 700;
+}
+
+.language-option.active svg {
+  color: var(--kiosk-teal);
+}
+
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.kiosk-main {
+  position: relative;
+  z-index: 2;
+
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 25px 20px 20px;
+
+  box-sizing: border-box;
+}
+.kiosk-content {
+  width: min(850px, 100%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   HEART ICON
+   ========================================================= */
+
+.kiosk-heart-icon {
+  width: 82px;
+  height: 82px;
+
+  margin-bottom: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(77, 179, 168, 0.18),
+      rgba(121, 216, 201, 0.30)
+    );
+
+  color: var(--kiosk-teal);
+
+  font-size: 38px;
+
+  box-shadow:
+    0 10px 25px rgba(77, 179, 168, 0.10);
+}
+
+
+/* =========================================================
+   HEADING
+   ========================================================= */
+
+.kiosk-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.kiosk-eyebrow {
+  margin-bottom: 12px;
+
+  color: var(--kiosk-teal-dark);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  letter-spacing: 2.5px;
+}
+
+.kiosk-heading h2 {
+  margin: 0;
+
+  color: var(--kiosk-navy);
+
+  font-family:
+    Georgia,
+    'Times New Roman',
+    serif;
+
+  font-size: clamp(38px, 5vw, 58px);
+
+  line-height: 1.12;
+
+  letter-spacing: -1.5px;
+}
+
+.kiosk-heading h3 {
+  margin: 14px 0 0;
+
+  color: var(--kiosk-teal);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: clamp(22px, 3vw, 30px);
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.kiosk-description {
+  max-width: 620px;
+
+  margin: 16px auto 22px;
+
+  color: var(--kiosk-muted);
+
+  font-size: 18px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   AUDIO BUTTON
+   ========================================================= */
+
+.kiosk-audio-button {
+  min-width: 310px;
+  min-height: 72px;
+
+  margin-bottom: 18px;
+
+  padding: 0 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  border: 2px solid #8cddd4;
+
+  border-radius: 16px;
+
+  background: white;
+
+  color: var(--kiosk-teal-dark);
+
+  font-size: 20px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 20px rgba(31, 41, 66, 0.05);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.kiosk-audio-button:hover {
+  background: #f0fbf9;
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 25px rgba(31, 41, 66, 0.08);
+}
+
+.kiosk-audio-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e6f7f4;
+
+  color: var(--kiosk-teal);
+
+  font-size: 18px;
+}
+
+.kiosk-audio-button.speaking {
+  border-color: #e6a6a6;
+
+  color: #b64c4c;
+
+  background: #fff9f9;
+}
+
+.kiosk-audio-button.speaking .kiosk-audio-icon {
+  background: #fdeaea;
+
+  color: #c45b5b;
+}
+
+
+/* =========================================================
+   START BUTTON
+   ========================================================= */
+
+.kiosk-start-button {
+  width: min(480px, 90%);
+
+  min-height: 88px;
+
+  padding: 0 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 25px;
+
+  border: none;
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #48aa9f,
+      #65cbbd
+    );
+
+  color: white;
+
+  font-size: 26px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 12px 28px rgba(61, 158, 149, 0.24);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.kiosk-start-button svg {
+  font-size: 25px;
+}
+
+.kiosk-start-button:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 17px 35px rgba(61, 158, 149, 0.30);
+}
+
+.kiosk-start-button:active {
+  transform: translateY(0);
+}
+
+
+/* =========================================================
+   TAP HINT
+   ========================================================= */
+
+.kiosk-tap-hint {
+  margin: 13px 0 0;
+
+  color: #8793a8;
+
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   TRUST INDICATORS
+   ========================================================= */
+
+.kiosk-trust {
+  margin-top: 35px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 35px;
+
+  color: #748399;
+
+  font-size: 15px;
+}
+
+.kiosk-trust div {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+.kiosk-trust svg {
+  color: var(--kiosk-teal);
+
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.kiosk-footer {
+  position: relative;
+  z-index: 3;
+
+  min-height: 55px;
+
+  padding: 0 7%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  background: rgba(255, 255, 255, 0.72);
+
+  border-top: 1px solid rgba(77, 179, 168, 0.10);
+
+  color: #8995a8;
+
+  font-size: 14px;
+}
+
+.footer-divider {
+  color: #c4d0d3;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+  .kiosk-header {
+    min-height: 90px;
+
+    padding: 0 25px;
+  }
+
+  .kiosk-main {
+    padding-top: 40px;
+  }
+
+  .kiosk-language-panel {
+    right: 25px;
+    top: 105px;
+  }
+
+  .kiosk-description {
+    font-size: 18px;
+
+    max-width: 580px;
+  }
+
+  .kiosk-trust {
+    gap: 20px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .kiosk-header {
+    padding: 0 18px;
+  }
+
+  .kiosk-logo {
+    width: 50px;
+    height: 50px;
+
+    border-radius: 15px;
+
+    font-size: 23px;
+  }
+
+  .kiosk-brand-text h1 {
+    font-size: 20px;
+  }
+
+  .kiosk-brand-text span {
+    font-size: 11px;
+  }
+
+  .kiosk-language-button {
+    min-width: 58px;
+    width: 58px;
+
+    padding: 0;
+  }
+
+  .kiosk-language-button span {
+    display: none;
+  }
+
+  .kiosk-language-panel {
+    left: 18px;
+    right: 18px;
+
+    top: 105px;
+
+    width: auto;
+  }
+
+  .kiosk-main {
+    padding: 35px 18px 25px;
+  }
+
+  .kiosk-heart-icon {
+    width: 85px;
+    height: 85px;
+
+    font-size: 38px;
+
+    border-radius: 25px;
+  }
+
+  .kiosk-heading h2 {
+    font-size: 36px;
+  }
+
+  .kiosk-heading h3 {
+    font-size: 22px;
+  }
+
+  .kiosk-description {
+    font-size: 17px;
+    line-height: 1.55;
+
+    margin-top: 17px;
+  }
+
+  .kiosk-audio-button {
+    width: 100%;
+    min-width: 0;
+
+    min-height: 68px;
+
+    font-size: 18px;
+  }
+
+  .kiosk-start-button {
+    width: 100%;
+
+    min-height: 80px;
+
+    font-size: 22px;
+  }
+
+  .kiosk-trust {
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-top: 25px;
+  }
+
+  .kiosk-footer {
+    font-size: 12px;
+  }
+}
