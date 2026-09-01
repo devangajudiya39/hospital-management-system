@@ -39,6 +39,7 @@ const labRouter = require("./router/lab.js");
 const pharmacyRouter = require("./router/pharmacy.js");
 const receptionistRouter = require("./router/receptionist.js");
 const billRouter = require("./router/bill.js");
+const consentRouter = require("./router/consent.js");
 
 // API Mounts
 app.use("/api/auth", authRouter);
@@ -49,6 +50,7 @@ app.use("/api/lab", labRouter);
 app.use("/api/pharmacy", pharmacyRouter);
 app.use("/api/receptionist", receptionistRouter);
 app.use("/api/billing", billRouter);
+app.use("/api/consent", consentRouter);
 
 
 app.get("/", (req, res) => {
