@@ -1,4 +1,5 @@
 import './App.css';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HospitalHomepage from './component/utils/HospitalHomepage';
 import Login from './component/auth/Login';
@@ -12,6 +13,10 @@ import ReceptionistDashboard from './component/receptionist/ReceptionistDashboar
 import PharmacyDashboard from './component/pharmacy/PharmacyDashboard';
 import LabDashboard from './component/lab/LabDashboard';
 import DocumentDigitizationPage from './features/document-digitization';
+import KioskHome from './features/kiosk/KioskHome';
+const SummaryReviewPage = React.lazy(() =>
+  import('./features/summary-generator/pages/SummaryReviewPage')
+);
 
 function App() {
   return (
@@ -29,6 +34,13 @@ function App() {
         <Route path="/pharmacist-dashboard" element={<PharmacyDashboard />} />
         <Route path="/lab_staff-dashboard" element={<LabDashboard />} />
         <Route path="/document-digitization" element={<DocumentDigitizationPage />} />
+        <Route path="/kiosk" element={<KioskHome/>}/>
+
+        <Route path="/summary-review" element={
+          <Suspense fallback={<div>Loading...</div>}>
+            <SummaryReviewPage />
+          </Suspense>
+        } />
       </Routes>
     </BrowserRouter>
   )

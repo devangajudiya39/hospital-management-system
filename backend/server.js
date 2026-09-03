@@ -22,6 +22,10 @@ mongoose.connect(mongoURI).then(() => {
     console.error("Error connecting to database", err);
 });
 
+// server.js — additive only
+const summaryRoutes = require('./summaryModule/summary.routes');
+app.use('/api/summary', summaryRoutes);
+
 // Redis Connection
 const { connectRedis } = require("./redisClient");
 connectRedis();
