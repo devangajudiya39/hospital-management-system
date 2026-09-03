@@ -17,11 +17,13 @@ router.post('/generate', async (req, res) => {
     const structuredSummary = await generateSummary(interviewData, documentTimeline);
 
     // Save linked summary record to MongoDB
+    console.log("-> Generating summary and saving to DB...");
     const doc = await Summary.create({
       ...structuredSummary,
       patientId: patientId || 'kiosk-patient-default',
       status: 'pending_review'
     });
+    console.log("-> SUCCESS! Saved document ID:", doc._id);
 
     res.status(201).json({
       success: true,
@@ -50,11 +52,21 @@ router.patch('/:id/status', async (req, res) => {
 
     // Dynamically re-translate updated text fields into Hindi via IndicTrans2 when edits occur
     let languageOutputs = undefined;
-    if (chiefComplaint !== undefined || hpi !== undefined || pastHistory !== undefined) {
+    if (
+      chiefComplaint !== undefined || 
+      hpi !== undefined || 
+      pastHistory !== undefined || 
+      drugHistory !== undefined || 
+      familyHistory !== undefined || 
+      personalHistory !== undefined
+    ) {
       languageOutputs = await updateSummaryTranslation({
         chiefComplaint,
         hpi,
-        pastHistory
+        pastHistory,
+        drugHistory, 
+        familyHistory,
+        personalHistory
       });
     }
 
