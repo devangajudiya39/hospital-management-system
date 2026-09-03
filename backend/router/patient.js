@@ -7,6 +7,7 @@ const Bill = require("../models/Bill.js");
 const Patient = require("../models/Patient.js");
 const Doctor = require("../models/doctor.js");
 const { authenticate, authorizeRole } = require("../middleware/authMiddleware.js");
+const encryptionService = require("../services/crypto/encryptionService");
 
 // All patient endpoints require patient role (some might allow admin/receptionist)
 patientRouter.use(authenticate, authorizeRole("patient", "admin", "receptionist"));
@@ -187,6 +188,14 @@ patientRouter.get("/history", async (req, res) => {
     try {
         const patientId = await getPatientId(req.user.id);
         const history = await Consultation.find({ patientId }).populate("doctorId").populate("appointmentId");
+        
+        // Decrypt clinical notes safely for the authorized patient
+        history.forEach(c => {
+            if (c.notes) {
+                c.notes = encryptionService.decrypt(c.notes);
+            }
+        });
+
         res.json(history);
     } catch (err) {
         res.status(500).json({ message: err.message });

@@ -11,6 +11,7 @@ const Medicine = require("../models/Medicine.js");
 const Patient = require("../models/Patient.js");
 const Room = require("../models/Room.js");
 const { authenticate, authorizeRole } = require("../middleware/authMiddleware.js");
+const encryptionService = require("../services/crypto/encryptionService");
 
 doctorRouter.use(authenticate, authorizeRole("doctor", "admin"));
 
@@ -91,6 +92,13 @@ doctorRouter.get("/patient/:patientId", async (req, res) => {
             .sort({ createdAt: -1 })
             .limit(10);
 
+        // Decrypt clinical notes safely for the authorized doctor
+        consultations.forEach(c => {
+            if (c.notes) {
+                c.notes = encryptionService.decrypt(c.notes);
+            }
+        });
+
         res.json({ patient, consultations });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -110,7 +118,7 @@ doctorRouter.post("/consultation", async (req, res) => {
             appointmentId,
             symptoms,
             diagnosis,
-            notes,
+            notes: encryptionService.encrypt(notes),
             status: "completed"
         });
         await consultation.save();
