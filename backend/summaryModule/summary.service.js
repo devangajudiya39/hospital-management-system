@@ -18,6 +18,25 @@ function flattenNestedSections(obj) {
     .join(' | ');
 }
 
+function flattenAyush(ayush) {
+  if (!ayush || Object.keys(ayush).length === 0) return 'None reported.';
+  const parts = [];
+  Object.entries(ayush).forEach(([key, value]) => {
+    if (Array.isArray(value) && value.length > 0) {
+      if (value[0].domain || value[0].label) {
+        // nested domain-style structure (like dashavidha_pariksha)
+        value.forEach(domain => {
+          parts.push(`${domain.label || domain.domain}: ${flattenQAList(domain.answers || [])}`);
+        });
+      } else {
+        // flat QA list (like ahara_vihara)
+        parts.push(`${key}: ${flattenQAList(value)}`);
+      }
+    }
+  });
+  return parts.length > 0 ? parts.join(' | ') : 'None reported.';
+}
+
 async function translateTextViaIndicTrans2(englishText, targetLang = 'hi') {
   if (targetLang === 'en') return englishText;
 
@@ -65,7 +84,7 @@ HPI: ${flattenQAList(interviewData.hpi)}
 Additional History: ${flattenQAList(interviewData.additional_history)}
 Extended History: ${flattenNestedSections(interviewData.extended_history)}
 Review of Systems: ${flattenNestedSections(interviewData.review_of_systems)}
-AYUSH Assessment: ${flattenNestedSections(interviewData.ayush)}
+AYUSH Assessment: ${flattenAyush(interviewData.ayush)}
 Red Flags: ${interviewData.red_flags?.detected ? `Detected (severity: ${interviewData.red_flags.severity}) — ${(interviewData.red_flags.details || []).join(', ')}` : 'None detected.'}
 
 Digitized Document Timeline (from Module B - OCR/Extraction):
