@@ -1,0 +1,1360 @@
+{
+  "printed_ocr": "Dr. R. K. Sharma Sharma Gunic MBBS, MD (Medicine) Kanpur - 208001 Reg. No. 58746 Ph.: 0512-2345678 SS Name : Retut Vexma Age / Sex : 2e/M Date : 15 [05 [2024 Ix oO Prracetamel 500 ma = | tab trie daily after food 5 days (2) Tbuprofen “00 ma - | tab twice daily after food 3 days 1 cap three times daily after food 5 days (4) Pamtoprazele Lo \"4 - | tab once daily before breakfast 5 daw: ee Dr. R. K. Sharma Reg. No. 58746",
+  "handwritten_ocr": [
+    "Reg. No. 58746. S.0005.0005. Philip St.2-343075",
+    "Rohit Verma -000 Age 1 Sex : 28 (M.",
+    "CD Paracetamol 500 mg",
+    "- I tab thrice daily after food # 5 days",
+    "Q Iburpnofen 400 mg",
+    "\" \" tab twice daily after food # 3 days",
+    "O Amoxicillin 500 mg",
+    "- I cap three times daily after food - 5 days",
+    "Pantoprazole 40 mg",
+    "\" I tab once daily before breakfast - 5 days",
+    "poor",
+    "Fatt and David Wright spicy food . They",
+    "nupkk Sharma"
+  ],
+  "combined_text": "Dr. R. K. Sharma Sharma Gunic MBBS, MD (Medicine) Kanpur - 208001 Reg. No. 58746 Ph.: 0512-2345678 SS Name : Retut Vexma Age / Sex : 2e/M Date : 15 [05 [2024 Ix oO Prracetamel 500 ma = | tab trie daily after food 5 days (2) Tbuprofen “00 ma - | tab twice daily after food 3 days 1 cap three times daily after food 5 days (4) Pamtoprazele Lo \"4 - | tab once daily before breakfast 5 daw: ee Dr. R. K. Sharma Reg. No. 58746 Reg. No. 58746. S.0005.0005. Philip St.2-343075 Rohit Verma -000 Age 1 Sex : 28 (M. CD Paracetamol 500 mg - I tab thrice daily after food # 5 days Q Iburpnofen 400 mg \" \" tab twice daily after food # 3 days O Amoxicillin 500 mg - I cap three times daily after food - 5 days Pantoprazole 40 mg \" I tab once daily before breakfast - 5 days poor Fatt and David Wright spicy food . They nupkk Sharma",
+  "dosages_found": [
+    "500 mg",
+    "400 mg",
+    "500 mg",
+    "40 mg"
+  ],
+  "candidate_words": [
+    "Sharma",
+    "Sharma",
+    "Gunic",
+    "MBBS",
+    "Medicine",
+    "Kanpur",
+    "Name",
+    "Retut",
+    "Vexma",
+    "Date",
+    "Prracetamel",
+    "trie",
+    "daily",
+    "after",
+    "food",
+    "days",
+    "Tbuprofen",
+    "twice",
+    "daily",
+    "after",
+    "food",
+    "days",
+    "three",
+    "times",
+    "daily",
+    "after",
+    "food",
+    "days",
+    "Pamtoprazele",
+    "once",
+    "daily",
+    "before",
+    "breakfast",
+    "Sharma",
+    "Philip",
+    "Rohit",
+    "Verma",
+    "Paracetamol",
+    "thrice",
+    "daily",
+    "after",
+    "food",
+    "days",
+    "Iburpnofen",
+    "twice",
+    "daily",
+    "after",
+    "food",
+    "days",
+    "Amoxicillin",
+    "three",
+    "times",
+    "daily",
+    "after",
+    "food",
+    "days",
+    "Pantoprazole",
+    "once",
+    "daily",
+    "before",
+    "breakfast",
+    "days",
+    "poor",
+    "Fatt",
+    "David",
+    "Wright",
+    "spicy",
+    "food",
+    "They",
+    "nupkk",
+    "Sharma"
+  ],
+  "normalized_drugs": [
+    "Ibuprofen",
+    "Paracetamol",
+    "Amoxicillin",
+    "Pantoprazole"
+  ],
+  "interactions": [],
+  "structured_medications": [
+    {
+      "drug_name": "Paracetamol",
+      "dosage": "500 mg",
+      "frequency": "thrice daily",
+      "duration": "5 days",
+      "raw_line": "CD Paracetamol 500 mg - I tab thrice daily after food # 5 days",
+      "needs_review": false,
+      "info_source": "not_found_locally",
+      "rxcui": "161",
+      "verified": true,
+      "clinical_info": null
+    },
+    {
+      "drug_name": "Ibuprofen",
+      "dosage": "400 mg",
+      "frequency": "twice daily",
+      "duration": "3 days",
+      "raw_line": "Q Iburpnofen 400 mg \" \" tab twice daily after food # 3 days",
+      "needs_review": false,
+      "info_source": "not_found_locally",
+      "rxcui": "5640",
+      "verified": true,
+      "clinical_info": {
+        "indications": "Uses temporarily relieves minor aches and pains due to: headache toothache backache menstrual cramps the common cold muscular aches minor pain of arthritis temporarily reduces fever",
+        "warnings": "Warnings Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin. Symptoms may include: rash facial swelling asthma (wheezing) hives skin reddening shock blisters If an allergic reaction occurs, stop use and seek medical help right away. Stomach bleeding warning: This product contains an NSAID, which may cause severe stomach bleeding. The chance is h",
+        "dosage_info": "Directions do not take more than directed the smallest effective dose should be used adults and children 12 years and over: take 1 tablet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 tablet, 2 tablets may be used do not exceed 6 tablets in 24 hours, unless directed by a doctor children under 12 years: ask a doctor"
+      }
+    },
+    {
+      "drug_name": "Amoxicillin",
+      "dosage": "500 mg",
+      "frequency": "three times daily",
+      "duration": "5 days",
+      "raw_line": "O Amoxicillin 500 mg - I cap three times daily after food - 5 days",
+      "needs_review": false,
+      "info_source": "not_found_locally",
+      "rxcui": "723",
+      "verified": true,
+      "clinical_info": {
+        "indications": "1 INDICATIONS AND USAGE Amoxicillin and clavulanate potassium for oral suspension, 600 mg/42.9 mg per 5 mL is indicated for the treatment of pediatric patients aged 3 months to 12 years weighing less than or equal to 40 kg with: Recurrent or persistent acute otitis media due to S. pneumoniae (penicillin MICs less than or equal to 2 mcg/mL), H. influenzae (including beta-lactamase-producing strains",
+        "warnings": null,
+        "dosage_info": "2 DOSAGE AND ADMINISTRATION Pediatric Patients aged 3 months to 12 years weighing less than or equal to 40 kg: 90 mg/kg/day divided every 12 hours, administered for 10 days. ( 2 ) 2.1 Important Administration Instructions To minimize the potential for gastrointestinal intolerance, amoxicillin and clavulanate potassium for oral suspension, 600 mg/42.9 mg per 5 mL should be taken at the start of a m"
+      }
+    },
+    {
+      "drug_name": "Pantoprazole",
+      "dosage": "40 mg",
+      "frequency": "once daily",
+      "duration": "5 days",
+      "raw_line": "Pantoprazole 40 mg \" I tab once daily before breakfast - 5 days poor Fatt and David Wright spicy food . They nupkk Sharma",
+      "needs_review": false,
+      "info_source": "not_found_locally",
+      "rxcui": "40790",
+      "verified": true,
+      "clinical_info": {
+        "indications": "1 INDICATIONS AND USAGE Pantoprazole Sodium for Injection is indicated for treatment of: gastroesophageal reflux disease (GERD) and a history of erosive esophagitis (EE) for up to 10 days in adults. pathological hypersecretory conditions including Zollinger-Ellison (ZE) Syndrome in adults. Limitations of Use The safety and effectiveness of Pantoprazole Sodium for Injection for the treatment of upp",
+        "warnings": null,
+        "dosage_info": "2 DOSAGE AND ADMINISTRATION GERD and a History of EE Adults: The recommended dosage is 40 mg once daily by intravenous injection (over at least 2 minutes) or intravenous infusion (for 15 minutes) for up to 10 days. ( 2.1 ) Discontinue as soon as the patient is able to receive oral treatment. Switch to an appropriate oral medication within 10 days of starting pantoprazole sodium for injection. ( 2."
+      }
+    }
+  ],
+  "low_confidence_words": [
+    {
+      "text": "Gunic",
+      "box": [
+        2169,
+        80,
+        2317,
+        173
+      ],
+      "confidence": 0.29
+    },
+    {
+      "text": "SS",
+      "box": [
+        489,
+        322,
+        2357,
+        374
+      ],
+      "confidence": 0.29
+    },
+    {
+      "text": "Retut",
+      "box": [
+        753,
+        390,
+        897,
+        456
+      ],
+      "confidence": 0.53
+    },
+    {
+      "text": "2e/M",
+      "box": [
+        2102,
+        362,
+        2275,
+        441
+      ],
+      "confidence": 0.17
+    },
+    {
+      "text": "[05",
+      "box": [
+        786,
+        489,
+        882,
+        564
+      ],
+      "confidence": 0.56
+    },
+    {
+      "text": "[2024",
+      "box": [
+        925,
+        486,
+        1122,
+        566
+      ],
+      "confidence": 0.62
+    },
+    {
+      "text": "oO",
+      "box": [
+        659,
+        673,
+        748,
+        762
+      ],
+      "confidence": 0.18
+    },
+    {
+      "text": "Prracetamel",
+      "box": [
+        810,
+        672,
+        1140,
+        758
+      ],
+      "confidence": 0.02
+    },
+    {
+      "text": "=",
+      "box": [
+        837,
+        822,
+        883,
+        832
+      ],
+      "confidence": 0.38
+    },
+    {
+      "text": "|",
+      "box": [
+        945,
+        808,
+        954,
+        843
+      ],
+      "confidence": 0.55
+    },
+    {
+      "text": "tab",
+      "box": [
+        994,
+        774,
+        1088,
+        876
+      ],
+      "confidence": 0.59
+    },
+    {
+      "text": "trie",
+      "box": [
+        1139,
+        774,
+        1286,
+        876
+      ],
+      "confidence": 0.22
+    },
+    {
+      "text": "days",
+      "box": [
+        2223,
+        756,
+        2349,
+        850
+      ],
+      "confidence": 0.55
+    },
+    {
+      "text": "Tbuprofen",
+      "box": [
+        791,
+        926,
+        1074,
+        1010
+      ],
+      "confidence": 0.68
+    },
+    {
+      "text": "“00",
+      "box": [
+        1154,
+        933,
+        1248,
+        978
+      ],
+      "confidence": 0.24
+    },
+    {
+      "text": "-",
+      "box": [
+        841,
+        1075,
+        866,
+        1081
+      ],
+      "confidence": 0.4
+    },
+    {
+      "text": "twice",
+      "box": [
+        1117,
+        1013,
+        1275,
+        1118
+      ],
+      "confidence": 0.36
+    },
+    {
+      "text": "days",
+      "box": [
+        2213,
+        994,
+        2353,
+        1092
+      ],
+      "confidence": 0.61
+    },
+    {
+      "text": "1",
+      "box": [
+        823,
+        1288,
+        922,
+        1328
+      ],
+      "confidence": 0
+    },
+    {
+      "text": "daily",
+      "box": [
+        1466,
+        1245,
+        1599,
+        1356
+      ],
+      "confidence": 0.64
+    },
+    {
+      "text": "Pamtoprazele",
+      "box": [
+        754,
+        1389,
+        1096,
+        1489
+      ],
+      "confidence": 0.5
+    },
+    {
+      "text": "Lo",
+      "box": [
+        1165,
+        1401,
+        1227,
+        1446
+      ],
+      "confidence": 0.42
+    },
+    {
+      "text": "\"4",
+      "box": [
+        1251,
+        1415,
+        1313,
+        1484
+      ],
+      "confidence": 0.49
+    },
+    {
+      "text": "before",
+      "box": [
+        1425,
+        1488,
+        1588,
+        1593
+      ],
+      "confidence": 0.61
+    },
+    {
+      "text": "daw:",
+      "box": [
+        2217,
+        1468,
+        2349,
+        1573
+      ],
+      "confidence": 0
+    },
+    {
+      "text": "ee",
+      "box": [
+        555,
+        1657,
+        2452,
+        1688
+      ],
+      "confidence": 0.09
+    }
+  ],
+  "text_regions": [
+    {
+      "text": "Dr.",
+      "box": [
+        759,
+        122,
+        857,
+        174
+      ],
+      "confidence": 0.93
+    },
+    {
+      "text": "R.",
+      "box": [
+        887,
+        118,
+        954,
+        172
+      ],
+      "confidence": 0.9
+    },
+    {
+      "text": "K.",
+      "box": [
+        983,
+        116,
+        1054,
+        170
+      ],
+      "confidence": 0.9
+    },
+    {
+      "text": "Sharma",
+      "box": [
+        1083,
+        113,
+        1353,
+        168
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "Sharma",
+      "box": [
+        1948,
+        85,
+        2135,
+        176
+      ],
+      "confidence": 0.92
+    },
+    {
+      "text": "Gunic",
+      "box": [
+        2169,
+        80,
+        2317,
+        173
+      ],
+      "confidence": 0.29
+    },
+    {
+      "text": "MBBS,",
+      "box": [
+        758,
+        211,
+        890,
+        248
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "MD",
+      "box": [
+        909,
+        210,
+        972,
+        241
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "(Medicine)",
+      "box": [
+        988,
+        206,
+        1192,
+        248
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "Kanpur",
+      "box": [
+        1989,
+        165,
+        2133,
+        241
+      ],
+      "confidence": 0.95
+    },
+    {
+      "text": "-",
+      "box": [
+        2148,
+        214,
+        2160,
+        219
+      ],
+      "confidence": 0.93
+    },
+    {
+      "text": "208001",
+      "box": [
+        2175,
+        194,
+        2316,
+        227
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "Reg.",
+      "box": [
+        756,
+        272,
+        844,
+        310
+      ],
+      "confidence": 0.95
+    },
+    {
+      "text": "No.",
+      "box": [
+        862,
+        270,
+        925,
+        300
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "58746",
+      "box": [
+        943,
+        267,
+        1062,
+        299
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "Ph.:",
+      "box": [
+        1943,
+        256,
+        2019,
+        287
+      ],
+      "confidence": 0.87
+    },
+    {
+      "text": "0512-2345678",
+      "box": [
+        2036,
+        248,
+        2326,
+        285
+      ],
+      "confidence": 0.89
+    },
+    {
+      "text": "SS",
+      "box": [
+        489,
+        322,
+        2357,
+        374
+      ],
+      "confidence": 0.29
+    },
+    {
+      "text": "Name",
+      "box": [
+        488,
+        410,
+        584,
+        462
+      ],
+      "confidence": 0.92
+    },
+    {
+      "text": ":",
+      "box": [
+        609,
+        427,
+        632,
+        450
+      ],
+      "confidence": 0.92
+    },
+    {
+      "text": "Retut",
+      "box": [
+        753,
+        390,
+        897,
+        456
+      ],
+      "confidence": 0.53
+    },
+    {
+      "text": "Vexma",
+      "box": [
+        950,
+        388,
+        1128,
+        451
+      ],
+      "confidence": 0.74
+    },
+    {
+      "text": "Age",
+      "box": [
+        1842,
+        398,
+        1908,
+        434
+      ],
+      "confidence": 0.91
+    },
+    {
+      "text": "/",
+      "box": [
+        1930,
+        395,
+        1940,
+        425
+      ],
+      "confidence": 0.89
+    },
+    {
+      "text": "Sex",
+      "box": [
+        1959,
+        394,
+        2020,
+        424
+      ],
+      "confidence": 0.92
+    },
+    {
+      "text": ":",
+      "box": [
+        2042,
+        400,
+        2048,
+        421
+      ],
+      "confidence": 0.89
+    },
+    {
+      "text": "2e/M",
+      "box": [
+        2102,
+        362,
+        2275,
+        441
+      ],
+      "confidence": 0.17
+    },
+    {
+      "text": "Date",
+      "box": [
+        483,
+        520,
+        570,
+        550
+      ],
+      "confidence": 0.84
+    },
+    {
+      "text": ":",
+      "box": [
+        622,
+        524,
+        628,
+        547
+      ],
+      "confidence": 0.82
+    },
+    {
+      "text": "15",
+      "box": [
+        702,
+        512,
+        754,
+        545
+      ],
+      "confidence": 0.78
+    },
+    {
+      "text": "[05",
+      "box": [
+        786,
+        489,
+        882,
+        564
+      ],
+      "confidence": 0.56
+    },
+    {
+      "text": "[2024",
+      "box": [
+        925,
+        486,
+        1122,
+        566
+      ],
+      "confidence": 0.62
+    },
+    {
+      "text": "Ix",
+      "box": [
+        468,
+        646,
+        573,
+        772
+      ],
+      "confidence": 0.79
+    },
+    {
+      "text": "oO",
+      "box": [
+        659,
+        673,
+        748,
+        762
+      ],
+      "confidence": 0.18
+    },
+    {
+      "text": "Prracetamel",
+      "box": [
+        810,
+        672,
+        1140,
+        758
+      ],
+      "confidence": 0.02
+    },
+    {
+      "text": "500",
+      "box": [
+        1218,
+        698,
+        1316,
+        741
+      ],
+      "confidence": 0.91
+    },
+    {
+      "text": "ma",
+      "box": [
+        1341,
+        713,
+        1407,
+        780
+      ],
+      "confidence": 0.82
+    },
+    {
+      "text": "=",
+      "box": [
+        837,
+        822,
+        883,
+        832
+      ],
+      "confidence": 0.38
+    },
+    {
+      "text": "|",
+      "box": [
+        945,
+        808,
+        954,
+        843
+      ],
+      "confidence": 0.55
+    },
+    {
+      "text": "tab",
+      "box": [
+        994,
+        774,
+        1088,
+        876
+      ],
+      "confidence": 0.59
+    },
+    {
+      "text": "trie",
+      "box": [
+        1139,
+        774,
+        1286,
+        876
+      ],
+      "confidence": 0.22
+    },
+    {
+      "text": "daily",
+      "box": [
+        1326,
+        774,
+        1462,
+        876
+      ],
+      "confidence": 0.92
+    },
+    {
+      "text": "after",
+      "box": [
+        1487,
+        774,
+        1615,
+        876
+      ],
+      "confidence": 0.92
+    },
+    {
+      "text": "food",
+      "box": [
+        1649,
+        774,
+        1751,
+        876
+      ],
+      "confidence": 0.9
+    },
+    {
+      "text": "5",
+      "box": [
+        2149,
+        765,
+        2185,
+        809
+      ],
+      "confidence": 0.72
+    },
+    {
+      "text": "days",
+      "box": [
+        2223,
+        756,
+        2349,
+        850
+      ],
+      "confidence": 0.55
+    },
+    {
+      "text": "(2)",
+      "box": [
+        620,
+        912,
+        707,
+        1006
+      ],
+      "confidence": 0.9
+    },
+    {
+      "text": "Tbuprofen",
+      "box": [
+        791,
+        926,
+        1074,
+        1010
+      ],
+      "confidence": 0.68
+    },
+    {
+      "text": "“00",
+      "box": [
+        1154,
+        933,
+        1248,
+        978
+      ],
+      "confidence": 0.24
+    },
+    {
+      "text": "ma",
+      "box": [
+        1274,
+        947,
+        1339,
+        1015
+      ],
+      "confidence": 0.91
+    },
+    {
+      "text": "-",
+      "box": [
+        841,
+        1075,
+        866,
+        1081
+      ],
+      "confidence": 0.4
+    },
+    {
+      "text": "|",
+      "box": [
+        928,
+        1051,
+        937,
+        1090
+      ],
+      "confidence": 0.93
+    },
+    {
+      "text": "tab",
+      "box": [
+        977,
+        1013,
+        1074,
+        1118
+      ],
+      "confidence": 0.72
+    },
+    {
+      "text": "twice",
+      "box": [
+        1117,
+        1013,
+        1275,
+        1118
+      ],
+      "confidence": 0.36
+    },
+    {
+      "text": "daily",
+      "box": [
+        1309,
+        1013,
+        1459,
+        1118
+      ],
+      "confidence": 0.9
+    },
+    {
+      "text": "after",
+      "box": [
+        1484,
+        1013,
+        1625,
+        1118
+      ],
+      "confidence": 0.95
+    },
+    {
+      "text": "food",
+      "box": [
+        1650,
+        1013,
+        1770,
+        1118
+      ],
+      "confidence": 0.93
+    },
+    {
+      "text": "3",
+      "box": [
+        2144,
+        1003,
+        2176,
+        1052
+      ],
+      "confidence": 0.89
+    },
+    {
+      "text": "days",
+      "box": [
+        2213,
+        994,
+        2353,
+        1092
+      ],
+      "confidence": 0.61
+    },
+    {
+      "text": "1",
+      "box": [
+        823,
+        1288,
+        922,
+        1328
+      ],
+      "confidence": 0
+    },
+    {
+      "text": "cap",
+      "box": [
+        967,
+        1245,
+        1060,
+        1356
+      ],
+      "confidence": 0.9
+    },
+    {
+      "text": "three",
+      "box": [
+        1105,
+        1245,
+        1245,
+        1356
+      ],
+      "confidence": 0.83
+    },
+    {
+      "text": "times",
+      "box": [
+        1284,
+        1245,
+        1430,
+        1356
+      ],
+      "confidence": 0.95
+    },
+    {
+      "text": "daily",
+      "box": [
+        1466,
+        1245,
+        1599,
+        1356
+      ],
+      "confidence": 0.64
+    },
+    {
+      "text": "after",
+      "box": [
+        1633,
+        1245,
+        1763,
+        1356
+      ],
+      "confidence": 0.74
+    },
+    {
+      "text": "food",
+      "box": [
+        1799,
+        1245,
+        1911,
+        1356
+      ],
+      "confidence": 0.89
+    },
+    {
+      "text": "5",
+      "box": [
+        2134,
+        1238,
+        2172,
+        1286
+      ],
+      "confidence": 0.9
+    },
+    {
+      "text": "days",
+      "box": [
+        2213,
+        1229,
+        2347,
+        1329
+      ],
+      "confidence": 0.76
+    },
+    {
+      "text": "(4)",
+      "box": [
+        571,
+        1378,
+        661,
+        1476
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "Pamtoprazele",
+      "box": [
+        754,
+        1389,
+        1096,
+        1489
+      ],
+      "confidence": 0.5
+    },
+    {
+      "text": "Lo",
+      "box": [
+        1165,
+        1401,
+        1227,
+        1446
+      ],
+      "confidence": 0.42
+    },
+    {
+      "text": "\"4",
+      "box": [
+        1251,
+        1415,
+        1313,
+        1484
+      ],
+      "confidence": 0.49
+    },
+    {
+      "text": "-",
+      "box": [
+        796,
+        1544,
+        824,
+        1551
+      ],
+      "confidence": 0.78
+    },
+    {
+      "text": "|",
+      "box": [
+        883,
+        1520,
+        894,
+        1561
+      ],
+      "confidence": 0.95
+    },
+    {
+      "text": "tab",
+      "box": [
+        936,
+        1506,
+        1029,
+        1572
+      ],
+      "confidence": 0.95
+    },
+    {
+      "text": "once",
+      "box": [
+        1088,
+        1488,
+        1207,
+        1593
+      ],
+      "confidence": 0.79
+    },
+    {
+      "text": "daily",
+      "box": [
+        1241,
+        1488,
+        1391,
+        1593
+      ],
+      "confidence": 0.92
+    },
+    {
+      "text": "before",
+      "box": [
+        1425,
+        1488,
+        1588,
+        1593
+      ],
+      "confidence": 0.61
+    },
+    {
+      "text": "breakfast",
+      "box": [
+        1642,
+        1478,
+        1900,
+        1569
+      ],
+      "confidence": 0.71
+    },
+    {
+      "text": "5",
+      "box": [
+        2151,
+        1476,
+        2182,
+        1525
+      ],
+      "confidence": 0.76
+    },
+    {
+      "text": "daw:",
+      "box": [
+        2217,
+        1468,
+        2349,
+        1573
+      ],
+      "confidence": 0
+    },
+    {
+      "text": "ee",
+      "box": [
+        555,
+        1657,
+        2452,
+        1688
+      ],
+      "confidence": 0.09
+    },
+    {
+      "text": "Dr.",
+      "box": [
+        1912,
+        1983,
+        1967,
+        2017
+      ],
+      "confidence": 0.93
+    },
+    {
+      "text": "R.",
+      "box": [
+        1983,
+        1981,
+        2023,
+        2016
+      ],
+      "confidence": 0.9
+    },
+    {
+      "text": "K.",
+      "box": [
+        2040,
+        1979,
+        2080,
+        2014
+      ],
+      "confidence": 0.91
+    },
+    {
+      "text": "Sharma",
+      "box": [
+        2095,
+        1978,
+        2253,
+        2013
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "Reg.",
+      "box": [
+        1921,
+        2067,
+        2017,
+        2114
+      ],
+      "confidence": 0.74
+    },
+    {
+      "text": "No.",
+      "box": [
+        2029,
+        2061,
+        2102,
+        2100
+      ],
+      "confidence": 0.96
+    },
+    {
+      "text": "58746",
+      "box": [
+        2115,
+        2050,
+        2255,
+        2096
+      ],
+      "confidence": 0.96
+    }
+  ],
+  "diagnoses": [],
+  "procedures": [],
+  "ner_mode": "biobert",
+  "investigations": [],
+  "disclaimer": "Investigation reference ranges are based on generic adult population norms (Mayo Clinic / NIH MedlinePlus). They do not account for patient age, sex, pregnancy, or individual clinical context. 'low'/'high' flags are informational only and must not be interpreted as a clinical diagnosis or treatment recommendation. Always consult a qualified clinician.",
+  "timeline": [
+    {
+      "date": "2024-05-15",
+      "events": [
+        {
+          "type": "medication",
+          "detail": "Paracetamol, 500 mg, thrice daily, 5 days"
+        },
+        {
+          "type": "medication",
+          "detail": "Ibuprofen, 400 mg, twice daily, 3 days"
+        },
+        {
+          "type": "medication",
+          "detail": "Amoxicillin, 500 mg, three times daily, 5 days"
+        },
+        {
+          "type": "medication",
+          "detail": "Pantoprazole, 40 mg, once daily, 5 days"
+        }
+      ]
+    }
+  ],
+  "performance": {
+    "deskew_ms": 20.16,
+    "preprocess_ms": 22.15,
+    "ocr_ms": 1031.46,
+    "handwriting_ms": 59430.9,
+    "entity_ms": 38.33,
+    "structuring_ms": 2580.99,
+    "clinical_ner_ms": 221.18,
+    "timeline_ms": 0.06,
+    "total_ms": 63404.55
+    }
+}

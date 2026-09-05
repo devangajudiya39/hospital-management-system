@@ -8,11 +8,47 @@ export default function SummaryReviewPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // ===== TEMPORARY TEST BLOCK — START =====
+    // Paste the full contents of backend/prescription-sample.json into this object,
+    // test the UI, then REVERT this whole block back to the simple version below
+    // (the original single-line body) once you've confirmed "Prescriptions" renders.
+    const testPrescriptionData = {
+      "printed_ocr": "Dr. R. K. Sharma Sharma Gunic MBBS, MD (Medicine) Kanpur - 208001 Reg. No. 58746 Ph.: 0512-2345678 SS Name : Retut Vexma Age / Sex : 2e/M Date : 15 [05 [2024 Ix oO Prracetamel 500 ma = | tab trie daily after food 5 days (2) Tbuprofen \u201c00 ma - | tab twice daily after food 3 days 1 cap three times daily after food 5 days (4) Pamtoprazele Lo \"4 - | tab once daily before breakfast 5 daw: ee Dr. R. K. Sharma Reg. No. 58746",
+      "handwritten_ocr": ["Reg. No. 58746. S.0005.0005. Philip St.2-343075", "Rohit Verma -000 Age 1 Sex : 28 (M.", "CD Paracetamol 500 mg", "- I tab thrice daily after food # 5 days", "Q Iburpnofen 400 mg", "\" \" tab twice daily after food # 3 days", "O Amoxicillin 500 mg", "- I cap three times daily after food - 5 days", "Pantoprazole 40 mg", "\" I tab once daily before breakfast - 5 days", "poor", "Fatt and David Wright spicy food . They", "nupkk Sharma"],
+      "structured_medications": [
+        { "drug_name": "Paracetamol", "dosage": "500 mg", "frequency": "thrice daily", "duration": "5 days" },
+        { "drug_name": "Ibuprofen", "dosage": "400 mg", "frequency": "twice daily", "duration": "3 days" },
+        { "drug_name": "Amoxicillin", "dosage": "500 mg", "frequency": "three times daily", "duration": "5 days" },
+        { "drug_name": "Pantoprazole", "dosage": "40 mg", "frequency": "once daily", "duration": "5 days" }
+      ],
+      "timeline": [
+        {
+          "date": "2024-05-15",
+          "events": [
+            { "type": "medication", "detail": "Paracetamol, 500 mg, thrice daily, 5 days" },
+            { "type": "medication", "detail": "Ibuprofen, 400 mg, twice daily, 3 days" },
+            { "type": "medication", "detail": "Amoxicillin, 500 mg, three times daily, 5 days" },
+            { "type": "medication", "detail": "Pantoprazole, 40 mg, once daily, 5 days" }
+          ]
+        }
+      ]
+    };
+
     fetch('/api/summary/generate', { 
         method: 'POST', 
         headers: {'Content-Type':'application/json'}, 
-        body: JSON.stringify({ patientId: 'mock-patient-001' }) 
+        body: JSON.stringify({
+          patientId: 'mock-patient-001',
+          analyzedDocuments: [{ type: 'prescription', data: testPrescriptionData }]
+        })
     })
+    // ===== TEMPORARY TEST BLOCK — END =====
+    // ORIGINAL (revert to this):
+    // fetch('/api/summary/generate', {
+    //     method: 'POST',
+    //     headers: {'Content-Type':'application/json'},
+    //     body: JSON.stringify({ patientId: 'mock-patient-001' })
+    // })
      .then(async (r) => {
         const json = await r.json();
         if (!r.ok) throw new Error(json.error || 'Failed to generate summary');
@@ -55,7 +91,7 @@ export default function SummaryReviewPage() {
       if (!res.ok) throw new Error(json.error || 'Failed to update status');
       
       setSummary(json.data || json);
-      alert("Successfully saved edits and updated status in MongoDB!");
+      alert(`Summary ${status} and saved successfully!`);
     } catch (err) {
       alert(`Error updating status: ${err.message}`);
     }
@@ -73,6 +109,7 @@ export default function SummaryReviewPage() {
           <h2 className="text-xl font-bold text-gray-800">Clinical Summary & Review</h2>
           <StatusBadge status={summary.status} />
         </div>
+
 
         {/* Task 5: Interactive Language Switcher Tab (English / Hindi Toggle) */}
         <div className="bg-gray-50 border p-4 rounded-xl space-y-2">
@@ -97,6 +134,38 @@ export default function SummaryReviewPage() {
             {summary.languageOutputs?.[activeLang] || 'Translation output loading...'}
           </p>
         </div>
+
+        {summary.documentTimeline && summary.documentTimeline.length > 0 && (() => {
+          const groups = {
+            prescription: { label: 'Prescriptions', items: [] },
+            lab: { label: 'Lab Reports', items: [] },
+            document: { label: 'Other Documents', items: [] }
+          };
+          summary.documentTimeline.forEach(item => {
+            const key = groups[item.type] ? item.type : 'document'; // ungrouped/legacy entries fall into "Other Documents"
+            groups[key].items.push(item);
+          });
+
+          return (
+            <div className="bg-gray-50 border p-4 rounded-xl space-y-4">
+              <span className="text-sm font-semibold text-teal-800">Document Timeline (from Module B)</span>
+              {Object.entries(groups).map(([key, group]) =>
+                group.items.length > 0 && (
+                  <div key={key} className="space-y-1">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{group.label}</span>
+                    {group.items.map((item, idx) => (
+                      <div key={idx} className="text-sm bg-white p-2 rounded border">
+                        <span className="font-medium">{new Date(item.date).toLocaleDateString()}</span>
+                        {' — '}{item.event}
+                        {item.sourceDocument && <span className="text-gray-500"> ({item.sourceDocument})</span>}
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+          );
+        })()}
 
         {/* Editable Structured Fields */}
         {['chiefComplaint','hpi','pastHistory','drugHistory','familyHistory','personalHistory'].map(field => (

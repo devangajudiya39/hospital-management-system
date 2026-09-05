@@ -5,7 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const port = 8080;
+const port = 8081;
 
 app.use(express.json());
 app.use(cors({
@@ -18,8 +18,28 @@ app.use(cors({
 const mongoURI = process.env.MONGODB_URI;
 mongoose.connect(mongoURI).then(() => {
     console.log("Connected to MongoDB database");
+    console.log("→ Database name:", mongoose.connection.name);
 }).catch((err) => {
-    console.error("Error connecting to database", err);
+    console.error("Error connecting to database:", err.message); // <-- CHANGED: .message shows the ACTUAL reason
+});
+
+// <-- MOVED OUT of the .then() block — now always registered, reports live status
+app.get('/api/debug/db-status', (req, res) => {
+    res.json({
+        readyState: mongoose.connection.readyState, // 1 = connected, 0 = disconnected, 2 = connecting, 3 = disconnecting
+        dbName: mongoose.connection.name,
+        host: mongoose.connection.host
+    });
+});
+
+const Summary = require('./summaryModule/summary.model');
+app.get('/api/debug/schema-check', (req, res) => {
+    const path = Summary.schema.path('documentTimeline');
+    res.json({
+        instance: path.instance,
+        caster: path.caster ? path.caster.instance : null,
+        schemaKeys: path.schema ? Object.keys(path.schema.paths) : null
+    });
 });
 
 // server.js — additive only

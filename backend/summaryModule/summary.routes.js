@@ -3,6 +3,8 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const { generateSummary, updateSummaryTranslation } = require('./summary.service');
 const Summary = require('./summary.model');
+const { buildDocumentTimeline } = require('./adapters/documentAdapter'); // <-- ADD THIS LINE (new import, alongside the others)
+
 
 // Universal integration endpoint: Accepts payloads from Module A (Nisarg) & Module B (Devang)
 router.post('/generate', async (req, res) => {
@@ -11,18 +13,57 @@ router.post('/generate', async (req, res) => {
       return res.status(503).json({ error: 'Database connection not ready. Please try again.' });
     }
 
-    const { patientId, interviewData, documentTimeline } = req.body;
+    const { patientId, interviewData, documentTimeline, analyzedDocuments } = req.body; // <-- ADD analyzedDocuments here
+
+    // <-- ADD THIS LINE (new, right after the destructure above, before calling generateSummary)
+    const finalTimeline = documentTimeline || (analyzedDocuments ? buildDocumentTimeline(analyzedDocuments) : undefined);
 
     // Call service layer with cross-module inputs (will safely fallback to mock data if empty)
-    const structuredSummary = await generateSummary(interviewData, documentTimeline);
+    const structuredSummary = await generateSummary(interviewData, finalTimeline); // <-- CHANGED: documentTimeline -> finalTimeline
 
     // Save linked summary record to MongoDB
     console.log("-> Generating summary and saving to DB...");
-    const doc = await Summary.create({
-      ...structuredSummary,
-      patientId: patientId || 'kiosk-patient-default',
-      status: 'pending_review'
-    });
+    // ★★★ ADD THIS MISSING LINE — fetches the existing document BEFORE the merge logic below uses it
+    const targetPatientId = patientId || 'kiosk-patient-default';
+    const existingDoc = await Summary.findOne({ patientId: targetPatientId });
+
+    // ★★★ NEW BLOCK — merge new timeline entries onto existing ones instead of
+    // letting the upsert below silently overwrite/erase previously attached documents
+    let mergedTimeline = structuredSummary.documentTimeline;
+    if (existingDoc && existingDoc.documentTimeline && existingDoc.documentTimeline.length > 0) {
+      const hadNewDocuments = Boolean(documentTimeline || analyzedDocuments);
+      if (hadNewDocuments) {
+        const newRealEntries = structuredSummary.documentTimeline.filter(item => {
+        if (item.sourceDocument === 'System Default') return false;
+        // Skip if an identical entry (same date + event) already exists — prevents
+        // re-running /generate with the same document from creating duplicates
+        const alreadyExists = existingDoc.documentTimeline.some(
+          existing => existing.event === item.event && 
+          new Date(existing.date).getTime() === new Date(item.date).getTime()
+        );
+        return !alreadyExists;
+        });
+        mergedTimeline = [...existingDoc.documentTimeline, ...newRealEntries];
+      } else {
+        // This call had no new documents — keep exactly what was already there
+        mergedTimeline = existingDoc.documentTimeline;
+      }
+    }
+    // ★★★ NEW BLOCK END
+
+    const doc = await Summary.findOneAndUpdate(
+    { patientId: targetPatientId },
+    {
+      $set: {
+        ...structuredSummary,
+        documentTimeline: mergedTimeline,
+        patientId: targetPatientId,
+        status: 'pending_review',
+        updatedAt: Date.now()
+      }
+    },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
     console.log("-> SUCCESS! Saved document ID:", doc._id);
 
     res.status(201).json({

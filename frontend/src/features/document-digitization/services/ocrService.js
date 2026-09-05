@@ -10,7 +10,7 @@ async function getPdfJs() {
 }
 
 export async function extractTextFromPDF(file) {
-  const pdfjsLib = await getPdfJs();
+  const pdfjsLib = await getPdfJs(); 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const extractedLines = [];
@@ -51,9 +51,9 @@ export async function processLabReport(lines) {
           .replace(/IFCC with.*/i, "")
           .replace(/BCG Colorimetric.*/i, "")
           .replace(/Kinetic Alkaline.*/i, "")
-          .trim();
+          .trim(); 
 
-        if (!cleanName) continue;
+        if (!cleanName) continue; 
 
         // 2. Evaluate cleaned test name
         const evaluation = evaluateLabResult(cleanName, numericValue);
