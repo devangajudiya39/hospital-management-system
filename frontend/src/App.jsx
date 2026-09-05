@@ -39,7 +39,7 @@ function App() {
         <Route path="/kiosk/interview" element={<KioskInterview/>}/>
         <Route path="/summary-review" element={
           <Suspense fallback={<div>Loading...</div>}>
-            <SummaryReviewPage />
+            <SummaryReviewPage /> 
           </Suspense>
         } />
       </Routes>

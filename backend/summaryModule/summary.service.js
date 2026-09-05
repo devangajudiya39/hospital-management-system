@@ -18,6 +18,25 @@ function flattenNestedSections(obj) {
     .join(' | ');
 }
 
+function flattenAyush(ayush) {
+  if (!ayush || Object.keys(ayush).length === 0) return 'None reported.';
+  const parts = [];
+  Object.entries(ayush).forEach(([key, value]) => {
+    if (Array.isArray(value) && value.length > 0) {
+      if (value[0].domain || value[0].label) {
+        // nested domain-style structure (like dashavidha_pariksha)
+        value.forEach(domain => {
+          parts.push(`${domain.label || domain.domain}: ${flattenQAList(domain.answers || [])}`);
+        });
+      } else {
+        // flat QA list (like ahara_vihara)
+        parts.push(`${key}: ${flattenQAList(value)}`);
+      }
+    }
+  });
+  return parts.length > 0 ? parts.join(' | ') : 'None reported.';
+}
+
 async function translateTextViaIndicTrans2(englishText, targetLang = 'hi') {
   if (targetLang === 'en') return englishText;
 
@@ -65,7 +84,7 @@ HPI: ${flattenQAList(interviewData.hpi)}
 Additional History: ${flattenQAList(interviewData.additional_history)}
 Extended History: ${flattenNestedSections(interviewData.extended_history)}
 Review of Systems: ${flattenNestedSections(interviewData.review_of_systems)}
-AYUSH Assessment: ${flattenNestedSections(interviewData.ayush)}
+AYUSH Assessment: ${flattenAyush(interviewData.ayush)}
 Red Flags: ${interviewData.red_flags?.detected ? `Detected (severity: ${interviewData.red_flags.severity}) — ${(interviewData.red_flags.details || []).join(', ')}` : 'None detected.'}
 
 Digitized Document Timeline (from Module B - OCR/Extraction):
@@ -89,22 +108,29 @@ Respond ONLY as a valid JSON object matching this exact structure:
 `;
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    'https://api.openai.com/v1/chat/completions',
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' }
+      })
     }
   );
 
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error?.message || 'Gemini API summarization failed');
+    throw new Error(data.error?.message || 'OpenAI API summarization failed');
   }
-
-  const text = data.candidates[0].content.parts[0].text;
+  const text = data.choices[0].message.content;
   let parsed;
+  
   try {
     parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
   } catch (parseErr) {
@@ -119,7 +145,8 @@ Respond ONLY as a valid JSON object matching this exact structure:
     ? documentTimeline.map(item => ({
         date: item.date ? new Date(item.date) : new Date(),
         event: item.event || item.title || 'Digitized Document Record',
-        sourceDocument: item.sourceDocument || item.documentType || 'Kiosk Upload'
+        sourceDocument: item.sourceDocument || item.documentType || 'Kiosk Upload',
+        type: item.type || 'document'
       }))
     : [{ date: new Date(), event: 'Initial kiosk intake synchronized', sourceDocument: 'System Default' }];
 
