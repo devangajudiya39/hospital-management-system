@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fa6';
 
 import './kiosk.css';
+import KioskNavbar from './components/KioskNavbar';
 
 
 const languages = [
@@ -302,7 +303,7 @@ function KioskHome() {
 
   const startConsultation = () => {
 
-    navigate('/kiosk/interview');
+    navigate('/kiosk/interview', { state: { language } });
 
   };
 
@@ -323,51 +324,20 @@ function KioskHome() {
 
 
       {/* HEADER */}
-
-      <header className="kiosk-header">
-
-        <div className="kiosk-brand">
-
-          <div className="kiosk-logo">
-            <FaHospital />
-          </div>
-
-          <div className="kiosk-brand-text">
-
-            <h1>
-              MultiSpecialist
-            </h1>
-
-            <span>
-              HOSPITAL
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <div className="kiosk-header-right">
-
+      <KioskNavbar
+        topBarTag="Touch-Mode Patient Consultation"
+        rightAction={
           <button
-            className="kiosk-language-button"
-            onClick={() =>
-              setShowLanguages(!showLanguages)
-            }
+            type="button"
+            className="flex items-center gap-2 px-4 py-2 border-2 border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-800 hover:bg-slate-100 font-bold rounded-xl text-sm transition-all cursor-pointer"
+            onClick={() => setShowLanguages(!showLanguages)}
             aria-label="Select language"
           >
-
-            <FaLanguage />
-
-            <span>
-              {currentContent.language}
-            </span>
-
+            <FaLanguage className="text-base" />
+            <span>{currentContent.language}</span>
           </button>
-
-        </div>
-
-      </header>
+        }
+      />
 
 
       {/* LANGUAGE PANEL */}

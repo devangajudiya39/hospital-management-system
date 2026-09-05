@@ -1,16 +1,16 @@
 /* =========================================================
-   MEDIKIOSK
+   MULTISPECIALIST HOSPITAL KIOSK
    Visual language matched to MultiSpecialist Hospital UI
    ========================================================= */
 
 .kiosk-page {
-  --kiosk-teal: #4db3a8;
-  --kiosk-teal-dark: #378f88;
-  --kiosk-teal-light: #79d8c9;
-  --kiosk-mint: #e8f8f5;
-  --kiosk-navy: #1f2942;
-  --kiosk-muted: #71809a;
-  --kiosk-border: #dce8e7;
+  --kiosk-teal: #0d9488;
+  --kiosk-teal-dark: #0f766e;
+  --kiosk-teal-light: #14b8a6;
+  --kiosk-mint: #f0fdfa;
+  --kiosk-navy: #1e293b;
+  --kiosk-muted: #64748b;
+  --kiosk-border: #ccfbf1;
   --kiosk-white: #ffffff;
 
   min-height: 100vh;
@@ -21,20 +21,10 @@
   display: flex;
   flex-direction: column;
 
-  background:
-    linear-gradient(
-      135deg,
-      #f8fffd 0%,
-      #eefbf8 45%,
-      #f8fbff 100%
-    );
-
+  background: #f8fafc;
   color: var(--kiosk-navy);
 
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
+  font-family: 'Nunito', sans-serif;
 }
 
 
@@ -215,10 +205,10 @@
 .kiosk-language-panel {
   position: absolute;
 
-  z-index: 20;
+  z-index: 50;
 
-  top: 125px;
-  right: 7%;
+  top: 110px;
+  right: 24px;
 
   width: 360px;
 
