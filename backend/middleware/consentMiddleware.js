@@ -21,6 +21,7 @@ const requireConsent = (purpose, dataTypes) => {
           userId: req.user ? req.user.id : null,
           patientId,
           action: "CONSENT_DENIED",
+          category: "CONSENT",
           details: `Access denied due to missing or expired consent for purpose: ${purpose}`,
           resourceType: "DataAccess",
           purpose,

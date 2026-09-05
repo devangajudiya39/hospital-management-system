@@ -53,11 +53,13 @@ const sessionCleanupService = {
     } finally {
       // Audit the cleanup event without logging any sensitive payload
       const action = securityViolation ? "SECURITY_VIOLATION_TEMP_CLEANUP" : "TEMP_SESSION_DATA_PURGED";
+      const category = securityViolation ? "SECURITY" : "SYSTEM";
       await auditService.log({
         userId,
         patientId,
         action,
-        details: securityViolation ? `Security violation rejected during temp cleanup: ${failureReason}` : `Temporary session data purged for reason: ${reason}`,
+        category,
+        details: securityViolation ? `Security violation rejected during temp cleanup` : `Temporary session data purged for reason: ${reason}`,
         resourceType: "Session",
         resourceId: sessionId,
         purpose: "Privacy and Storage Minimization",
