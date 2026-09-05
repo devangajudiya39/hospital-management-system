@@ -124,6 +124,7 @@ Respond ONLY as a valid JSON object matching this exact structure:
   );
 
   const data = await response.json();
+
   if (!response.ok) {
     throw new Error(data.error?.message || 'OpenAI API summarization failed');
   }
