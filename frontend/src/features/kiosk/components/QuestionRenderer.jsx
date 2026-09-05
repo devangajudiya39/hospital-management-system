@@ -42,8 +42,8 @@ export default function QuestionRenderer({ question, onSubmit, disabled }) {
       );
     default:
       return (
-        <div className="kiosk-error-text">
-          Unsupported question type: {question.type}
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold rounded-2xl p-4 my-4">
+          Question format "{question.type}" is currently being configured. Please seek staff assistance.
         </div>
       );
   }
