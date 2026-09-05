@@ -89,29 +89,28 @@ Respond ONLY as a valid JSON object matching this exact structure:
 `;
 
   const response = await fetch(
-  'https://api.openai.com/v1/chat/completions',
-  {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini', // cheap, fast, good enough for structured JSON output
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' } // enforces valid JSON output, no manual stripping needed
-    })
+    'https://api.openai.com/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' }
+      })
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error?.message || 'OpenAI API summarization failed');
   }
-);
-
-const data = await response.json();
-if (!response.ok) {
-  throw new Error(data.error?.message || 'OpenAI API summarization failed');
-}
-
-const text = data.choices[0].message.content;
-
+  const text = data.choices[0].message.content;
   let parsed;
+  
   try {
     parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
   } catch (parseErr) {

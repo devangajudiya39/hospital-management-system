@@ -110,7 +110,6 @@ export default function SummaryReviewPage() {
           <StatusBadge status={summary.status} />
         </div>
 
-
         {/* Task 5: Interactive Language Switcher Tab (English / Hindi Toggle) */}
         <div className="bg-gray-50 border p-4 rounded-xl space-y-2">
           <div className="flex justify-between items-center">
