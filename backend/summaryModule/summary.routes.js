@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
-const { generateSummary } = require('./summary.service');
+const { generateSummary, updateSummaryTranslation } = require('./summary.service');
 const Summary = require('./summary.model');
 
 // Universal integration endpoint: Accepts payloads from Module A (Nisarg) & Module B (Devang)
@@ -17,11 +17,13 @@ router.post('/generate', async (req, res) => {
     const structuredSummary = await generateSummary(interviewData, documentTimeline);
 
     // Save linked summary record to MongoDB
+    console.log("-> Generating summary and saving to DB...");
     const doc = await Summary.create({
       ...structuredSummary,
       patientId: patientId || 'kiosk-patient-default',
       status: 'pending_review'
     });
+    console.log("-> SUCCESS! Saved document ID:", doc._id);
 
     res.status(201).json({
       success: true,
@@ -34,7 +36,7 @@ router.post('/generate', async (req, res) => {
   }
 });
 
-// Status update state machine endpoint (Accept / Amend / Reject) & text persistence
+// Status update state machine endpoint (Accept / Amend / Reject) & text persistence + dynamic re-translation
 router.patch('/:id/status', async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
@@ -48,7 +50,27 @@ router.patch('/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'Invalid state machine status provided.' });
     }
 
-    // Build update payload, capturing text edits if provided
+    // Dynamically re-translate updated text fields into Hindi via IndicTrans2 when edits occur
+    let languageOutputs = undefined;
+    if (
+      chiefComplaint !== undefined || 
+      hpi !== undefined || 
+      pastHistory !== undefined || 
+      drugHistory !== undefined || 
+      familyHistory !== undefined || 
+      personalHistory !== undefined
+    ) {
+      languageOutputs = await updateSummaryTranslation({
+        chiefComplaint,
+        hpi,
+        pastHistory,
+        drugHistory, 
+        familyHistory,
+        personalHistory
+      });
+    }
+
+    // Build update payload, capturing text edits and newly translated outputs if provided
     const updateFields = {
       status,
       updatedAt: Date.now(),
@@ -57,7 +79,8 @@ router.patch('/:id/status', async (req, res) => {
       ...(pastHistory !== undefined && { pastHistory }),
       ...(drugHistory !== undefined && { drugHistory }),
       ...(familyHistory !== undefined && { familyHistory }),
-      ...(personalHistory !== undefined && { personalHistory })
+      ...(personalHistory !== undefined && { personalHistory }),
+      ...(languageOutputs !== undefined && { languageOutputs })
     };
 
     const updatedDoc = await Summary.findByIdAndUpdate(

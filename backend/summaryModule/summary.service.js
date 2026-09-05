@@ -1,16 +1,72 @@
 const mockInterview = require('./mocks/mockInterviewData');
 
+// Flattens Nisarg's structured clinical_summary sections into readable text
+// for the LLM prompt. Keeps the prompt shape-agnostic so small key-name
+// corrections later (once real sample confirmed) don't require a rewrite.
+function flattenQAList(list) {
+  if (!Array.isArray(list) || list.length === 0) return 'None reported.';
+  return list.map(item => {
+    const answer = Array.isArray(item.answer) ? item.answer.join(', ') : item.answer;
+    return `${item.question}: ${answer}`;
+  }).join('; ');
+}
+
+function flattenNestedSections(obj) {
+  if (!obj || typeof obj !== 'object' || Object.keys(obj).length === 0) return 'None reported.';
+  return Object.entries(obj)
+    .map(([section, list]) => `[${section}] ${flattenQAList(list)}`)
+    .join(' | ');
+}
+
+async function translateTextViaIndicTrans2(englishText, targetLang = 'hi') {
+  if (targetLang === 'en') return englishText;
+
+  const translationEndpoint = process.env.INDICTRANS_LOCAL_ENDPOINT || 'http://localhost:5001/translate';
+
+  try {
+    const response = await fetch(translationEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: englishText, src_lang: 'eng_Latn', tgt_lang: 'hin_Deva' })
+    });
+    const result = await response.json();
+    // Explicitly check response status and ensure we extract text accurately
+    if (!response.ok) {
+      throw new Error(result.detail || 'Translation service returned an error status');
+    }
+    
+    if (result.translatedText || result.translation) {
+      return result.translatedText || result.translation;
+    } else {
+      throw new Error('Translation response missing expected text keys');
+    }
+  } catch (err) {
+    console.error('Translation failed, check if FastAPI server on port 5001 is running:', err.message);
+    // Return explicit error text so it shows up in UI instead of silently masking as a success string
+  }
+
+  return `[Translation Error: Python service at port 5001 unreachable]`;
+}
+
 async function generateSummary(incomingInterviewData, incomingTimeline) {
-  // Fallback gracefully to mocks if other modules haven't sent data yet
+  // Falls back to mock (Nisarg's real clinical_summary shape) when Module A
+  // hasn't sent data yet — safe for isolated dev/testing.
   const interviewData = incomingInterviewData || mockInterview;
   const documentTimeline = Array.isArray(incomingTimeline) ? incomingTimeline : [];
 
   const prompt = `
-You are an expert clinical summarizer for a hospital kiosk system. 
-Synthesize the following structured patient interview data and historical document timeline into a clinical summary.
+You are an expert clinical summarizer for a hospital kiosk system.
+Synthesize the following structured patient interview data (from a conversational
+intake engine) and historical document timeline (from OCR of prior records) into
+a clinical summary.
 
-Patient Interview Data:
-${JSON.stringify(interviewData, null, 2)}
+Chief Complaint: ${interviewData.chief_complaint || interviewData.chiefComplaint || 'Not reported'}
+HPI: ${flattenQAList(interviewData.hpi)}
+Additional History: ${flattenQAList(interviewData.additional_history)}
+Extended History: ${flattenNestedSections(interviewData.extended_history)}
+Review of Systems: ${flattenNestedSections(interviewData.review_of_systems)}
+AYUSH Assessment: ${flattenNestedSections(interviewData.ayush)}
+Red Flags: ${interviewData.red_flags?.detected ? `Detected (severity: ${interviewData.red_flags.severity}) — ${(interviewData.red_flags.details || []).join(', ')}` : 'None detected.'}
 
 Digitized Document Timeline (from Module B - OCR/Extraction):
 ${JSON.stringify(documentTimeline, null, 2)}
@@ -27,7 +83,7 @@ Respond ONLY as a valid JSON object matching this exact structure:
   "investigations": [{"name": "string", "value": "string", "flag": "string"}],
   "languageOutputs": {
     "en": "English clinical summary paragraph combining chief complaint and HPI.",
-    "hi": "Hindi translation of the clinical summary."
+    "hi": ""
   }
 }
 `;
@@ -37,14 +93,11 @@ Respond ONLY as a valid JSON object matching this exact structure:
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     }
   );
 
   const data = await response.json();
-
   if (!response.ok) {
     throw new Error(data.error?.message || 'Gemini API summarization failed');
   }
@@ -57,8 +110,11 @@ Respond ONLY as a valid JSON object matching this exact structure:
     throw new Error('Failed to parse LLM structured output format.');
   }
 
-  // Merge and normalize Devang's document timeline securely
-  const normalizedTimeline = documentTimeline.length > 0 
+  const englishNarrative = parsed.languageOutputs?.en || `Chief Complaint: ${parsed.chiefComplaint}. HPI: ${parsed.hpi}`;
+  const hindiTranslation = await translateTextViaIndicTrans2(englishNarrative, 'hi');
+  parsed.languageOutputs = { en: englishNarrative, hi: hindiTranslation };
+
+  const normalizedTimeline = documentTimeline.length > 0
     ? documentTimeline.map(item => ({
         date: item.date ? new Date(item.date) : new Date(),
         event: item.event || item.title || 'Digitized Document Record',
@@ -66,10 +122,18 @@ Respond ONLY as a valid JSON object matching this exact structure:
       }))
     : [{ date: new Date(), event: 'Initial kiosk intake synchronized', sourceDocument: 'System Default' }];
 
+  // Carries Nisarg's red-flag signal through — useful once alert routing exists
   return {
     ...parsed,
-    documentTimeline: normalizedTimeline
+    documentTimeline: normalizedTimeline,
+    redFlagDetected: interviewData.red_flags?.detected || false
   };
 }
 
-module.exports = { generateSummary };
+async function updateSummaryTranslation(updatedFields) {
+  const englishNarrative = `Chief Complaint: ${updatedFields.chiefComplaint || ''}. HPI: ${updatedFields.hpi || ''}. Past History: ${updatedFields.pastHistory || ''}. Drug History: ${updatedFields.drugHistory || ''}. Family History: ${updatedFields.familyHistory || ''}. Personal History: ${updatedFields.personalHistory || ''}`;
+  const hindiTranslation = await translateTextViaIndicTrans2(englishNarrative, 'hi');
+  return { en: englishNarrative, hi: hindiTranslation };
+}
+
+module.exports = { generateSummary, updateSummaryTranslation };
