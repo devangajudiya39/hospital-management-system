@@ -109,7 +109,6 @@ export default function SummaryReviewPage() {
           <h2 className="text-xl font-bold text-gray-800">Clinical Summary & Review</h2>
           <StatusBadge status={summary.status} />
         </div>
-
         {/* Task 5: Interactive Language Switcher Tab (English / Hindi Toggle) */}
         <div className="bg-gray-50 border p-4 rounded-xl space-y-2">
           <div className="flex justify-between items-center">
@@ -177,7 +176,6 @@ export default function SummaryReviewPage() {
             />
           </div>
         ))}
-
         {/* Action State Buttons */}
         <div className="flex gap-3 pt-2">
           <button onClick={() => updateStatus('accepted')} className="bg-teal-600 text-white px-4 py-2 rounded-xl shadow-sm hover:bg-teal-700">Accept</button>
