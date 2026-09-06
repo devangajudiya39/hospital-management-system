@@ -201,10 +201,15 @@ const HospitalHomepage = () => {
               World-class multispecialty care under one roof — compassionate doctors, advanced technology, and a healing environment built for you.
             </p>
 
-            <div className="fade-up-3 flex flex-col sm:flex-row gap-4">
-              <button className="group flex items-center justify-center gap-2.5 px-8 py-4 teal-grad text-white font-black rounded-2xl shadow-xl shadow-teal-600/40 hover:scale-105 transition-all duration-200 text-base"
+            <div className="fade-up-3 flex flex-col sm:flex-row flex-wrap gap-4">
+              <button className="group flex items-center justify-center gap-2.5 px-8 py-4 teal-grad text-white font-black rounded-2xl shadow-xl shadow-teal-600/40 hover:scale-105 transition-all duration-200 text-base cursor-pointer"
               onClick={ () => navigate("/login") }>
                 <FaCalendarCheck /> Book Appointment
+                <FaArrowRight className="text-sm group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button className="group flex items-center justify-center gap-2.5 px-8 py-4 teal-grad text-white font-black rounded-2xl shadow-xl shadow-teal-600/40 hover:scale-105 transition-all duration-200 text-base cursor-pointer"
+              onClick={ () => navigate("/kiosk") }>
+                <FaHeartbeat /> Start Touch Consultation
                 <FaArrowRight className="text-sm group-hover:translate-x-1 transition-transform" />
               </button>
               <button className="flex items-center justify-center gap-2.5 px-8 py-4 bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white font-bold rounded-2xl hover:bg-white/25 transition-all text-base">

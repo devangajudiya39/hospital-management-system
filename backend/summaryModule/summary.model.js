@@ -10,7 +10,10 @@ const summarySchema = new mongoose.Schema({
   personalHistory: String,
   ros: [String],
   investigations: [{ name: String, value: String, flag: String }], // flag: 'normal'|'abnormal' — hook for Devang's Task 5 later
-  documentTimeline: [{ date: Date, event: String }], // filled in Task 3
+  // documentTimeline: [{ date: Date, event: String }], // before 
+  // summary.model.js — inside the schema // after
+    //documentTimeline: [{ date: Date, event: String, sourceDocument: String }],
+    documentTimeline: [{ date: Date, event: String, sourceDocument: String, type: {type: String} }],
   status: {
     type: String,
     enum: ['draft', 'pending_review', 'accepted', 'amended', 'rejected'],

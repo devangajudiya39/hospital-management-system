@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
 import StatusBadge from '../components/StatusBadge';
+// import prescriptionSample from '../../../../backend/prescription-sample.json'; // adjust path as needed
+// import labSample from '../../../../backend/lab-report-sample.json';
 
 export default function SummaryReviewPage() {
   const [summary, setSummary] = useState(null);
   const [formData, setFormData] = useState({});
+  const [activeLang, setActiveLang] = useState('en'); // Task 5: Interactive language switcher tab ('en' or 'hi')
   const [error, setError] = useState(null);
+  const [hindiLoading, setHindiLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/summary/generate', { 
-        method: 'POST', 
-        headers: {'Content-Type':'application/json'}, 
-        body: JSON.stringify({ patientId: 'mock-patient-001' }) 
+    fetch('/api/summary/generate', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ patientId: 'sample-patient-001' })
     })
+    // ===== TEMPORARY TEST BLOCK — END =====
      .then(async (r) => {
         const json = await r.json();
         if (!r.ok) throw new Error(json.error || 'Failed to generate summary');
@@ -35,6 +40,28 @@ export default function SummaryReviewPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleHindiClick = async () => {
+  setActiveLang('hi');
+  if (summary.languageOutputs?.hi) return; // already translated, nothing to fetch
+
+  setHindiLoading(true);
+    try {
+      const res = await fetch(`/api/summary/${summary._id}/translate?lang=hi`);
+      const json = await res.json();
+      if (res.ok) {
+        setSummary(prev => ({
+          ...prev,
+          languageOutputs: { ...prev.languageOutputs, hi: json.hi }
+        }));
+      }
+    } catch (err) {
+      console.error('Hindi translation fetch failed:', err.message);
+    } finally {
+      setHindiLoading(false);
+    }
+  };
+
+
   const updateStatus = async (status) => {
     if (!summary || !summary._id) {
       alert("Summary ID is missing!");
@@ -47,14 +74,14 @@ export default function SummaryReviewPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           status, 
-          ...formData //  This explicitly sends your edited text box fields to the backend!
+          ...formData // This explicitly sends your edited text box fields to the backend!
         })
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to update status');
       
       setSummary(json.data || json);
-      alert("Successfully saved edits and updated status in MongoDB!");
+      alert(`Summary ${status} and saved successfully!`);
     } catch (err) {
       alert(`Error updating status: ${err.message}`);
     }
@@ -66,10 +93,78 @@ export default function SummaryReviewPage() {
   return (
     <div className="max-w-3xl mx-auto p-8">
       <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
+        
+        {/* Header & Status Badge */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">Clinical Summary & Review</h2>
           <StatusBadge status={summary.status} />
         </div>
+        {/* Task 5: Interactive Language Switcher Tab (English / Hindi Toggle) */}
+        <div className="bg-gray-50 border p-4 rounded-xl space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-semibold text-teal-800">Bilingual Narrative Output (EN / HI)</span>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setActiveLang('en')}
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${activeLang === 'en' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border hover:bg-gray-100'}`}
+              >
+                English
+              </button>
+              <button 
+                onClick={handleHindiClick}
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${activeLang === 'hi' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border hover:bg-gray-100'}`}
+              >
+                Hindi (हिन्दी)
+              </button>
+              <button
+                onClick={() => new Audio(`/api/summary/${summary._id}/audio?lang=${activeLang}`).play()}
+                disabled={activeLang === 'hi' && hindiLoading}
+                className="px-3 py-1 text-xs font-semibold rounded-lg bg-teal-100 text-teal-800 hover:bg-teal-200"
+              >
+                🔊 Play
+              </button>
+            </div>
+          </div>
+          <p className="text-sm text-gray-700 bg-white p-3 rounded-lg border italic">
+            {activeLang === 'hi' && hindiLoading
+              ? 'Translating to Hindi...'
+              : (summary.languageOutputs?.[activeLang] || 'Translation output loading...')}
+          </p>
+        </div>
+
+        {summary.documentTimeline && summary.documentTimeline.length > 0 && (() => {
+          const groups = {
+            prescription: { label: 'Prescriptions', items: [] },
+            lab: { label: 'Lab Reports', items: [] },
+            document: { label: 'Other Documents', items: [] }
+          };
+          summary.documentTimeline.forEach(item => {
+            const key = groups[item.type] ? item.type : 'document'; // ungrouped/legacy entries fall into "Other Documents"
+            groups[key].items.push(item);
+          });
+
+          return (
+            <div className="bg-gray-50 border p-4 rounded-xl space-y-4">
+              <span className="text-sm font-semibold text-teal-800">Document Timeline (from Module B)</span>
+              {Object.entries(groups).map(([key, group]) =>
+                group.items.length > 0 && (
+                  <div key={key} className="space-y-1">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{group.label}</span>
+                    {group.items.map((item, idx) => (
+                      <div key={idx} className="text-sm bg-white p-2 rounded border">
+                        <span className="font-medium">{new Date(item.date).toLocaleDateString()}</span>
+                        {' — '}{item.event}
+                        {item.sourceDocument && <span className="text-gray-500"> ({item.sourceDocument})</span>}
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Editable Structured Fields */}
         {['chiefComplaint','hpi','pastHistory','drugHistory','familyHistory','personalHistory'].map(field => (
           <div key={field}>
             <label className="text-sm font-semibold text-teal-700 capitalize">{field.replace(/([A-Z])/g,' $1')}</label>
@@ -80,11 +175,13 @@ export default function SummaryReviewPage() {
             />
           </div>
         ))}
+        {/* Action State Buttons */}
         <div className="flex gap-3 pt-2">
           <button onClick={() => updateStatus('accepted')} className="bg-teal-600 text-white px-4 py-2 rounded-xl shadow-sm hover:bg-teal-700">Accept</button>
           <button onClick={() => updateStatus('amended')} className="bg-emerald-500 text-white px-4 py-2 rounded-xl shadow-sm hover:bg-emerald-600">Save Amendment</button>
           <button onClick={() => updateStatus('rejected')} className="bg-white border border-rose-400 text-rose-600 px-4 py-2 rounded-xl">Reject</button>
         </div>
+
       </div>
     </div>
   );
