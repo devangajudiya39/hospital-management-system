@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { startInterview as apiStartInterview, submitInterviewAnswer as apiSubmitInterviewAnswer, transcribeAudio as apiTranscribeAudio } from '../services/interviewApi';
+import { convertBlobToWav } from '../utils/audioConverter';
 
 export function useInterview() {
   const [sessionId, setSessionId] = useState(null);
@@ -20,11 +21,28 @@ export function useInterview() {
 
   const [lastAction, setLastAction] = useState(null);
 
+  // Refs mirror the corresponding state values so async callbacks always
+  // read the current value without stale-closure risk.
+  const sessionIdRef = useRef(null);
+  const selectedLanguageRef = useRef('en');
+  const assessmentTypeRef = useRef('modern');
+  const ayushAssessmentsRef = useRef([]);
+  const isLoadingRef = useRef(false);
+  const isTranscribingRef = useRef(false);
+
+  // Keep refs in sync with state
+  const syncSetSessionId = (v) => { sessionIdRef.current = v; setSessionId(v); };
+  const syncSetSelectedLanguage = (v) => { selectedLanguageRef.current = v; setSelectedLanguage(v); };
+  const syncSetAssessmentType = (v) => { assessmentTypeRef.current = v; setAssessmentType(v); };
+  const syncSetAyushAssessments = (v) => { ayushAssessmentsRef.current = v; setAyushAssessments(v); };
+  const syncSetIsLoading = (v) => { isLoadingRef.current = v; setIsLoading(v); };
+  const syncSetIsTranscribing = (v) => { isTranscribingRef.current = v; setIsTranscribing(v); };
+
   const resetInterview = useCallback(() => {
-    setSessionId(null);
+    syncSetSessionId(null);
     setCurrentQuestion(null);
-    setIsLoading(false);
-    setIsTranscribing(false);
+    syncSetIsLoading(false);
+    syncSetIsTranscribing(false);
     setError(null);
     setLastAction(null);
     setInterviewComplete(false);
@@ -35,15 +53,24 @@ export function useInterview() {
   }, []);
 
   const handleApiResponse = useCallback((data) => {
+    console.log('[VOICE] handleApiResponse called, data:', JSON.stringify(data));
+    console.log('[VOICE] next_question:', data.next_question);
+    console.log('[VOICE] interview_complete:', data.interview_complete);
+    console.log('[VOICE] red_flag_detected:', data.red_flag_detected);
+    console.log('[VOICE] alert_triggered:', data.alert_triggered);
+
     if (data.session_id) {
-      setSessionId(data.session_id);
+      syncSetSessionId(data.session_id);
+      console.log('[VOICE] session_id updated to:', data.session_id);
     }
     
     // If next_question is returned (including any retry note), update currentQuestion
     if (data.next_question) {
       setCurrentQuestion(data.next_question);
+      console.log('[VOICE] currentQuestion updated to:', JSON.stringify(data.next_question));
     } else if (data.interview_complete) {
       setCurrentQuestion(null);
+      console.log('[VOICE] Interview marked complete, currentQuestion cleared');
     }
     
     setInterviewComplete(!!data.interview_complete);
@@ -54,10 +81,10 @@ export function useInterview() {
   }, []);
 
   const startInterview = useCallback(async (lang = 'en', type = 'modern') => {
-    setIsLoading(true);
+    syncSetIsLoading(true);
     setError(null);
-    setSelectedLanguage(lang);
-    setAssessmentType(type);
+    syncSetSelectedLanguage(lang);
+    syncSetAssessmentType(type);
     setLastAction(() => () => startInterview(lang, type));
     
     try {
@@ -67,70 +94,153 @@ export function useInterview() {
     } catch (err) {
       setError(err.message || 'Failed to start interview. Please check your network connection.');
     } finally {
-      setIsLoading(false);
+      syncSetIsLoading(false);
     }
   }, [handleApiResponse]);
 
+  // submitAnswer uses refs for guards so it never silently returns due to stale closure
   const submitAnswer = useCallback(async (answer, inputMode = 'touch') => {
-    if (!sessionId || isLoading) return;
-    setIsLoading(true);
+    const currentSessionId = sessionIdRef.current;
+    const currentIsLoading = isLoadingRef.current;
+
+    console.log('[VOICE] submitAnswer called:', {
+      answer,
+      inputMode,
+      sessionId: currentSessionId,
+      isLoading: currentIsLoading,
+      language: selectedLanguageRef.current,
+      assessmentType: assessmentTypeRef.current,
+    });
+
+    if (!currentSessionId) {
+      console.error('[VOICE] submitAnswer BLOCKED — sessionId is null/empty');
+      return;
+    }
+    if (currentIsLoading) {
+      console.error('[VOICE] submitAnswer BLOCKED — isLoading is true (guard hit)');
+      return;
+    }
+
+    syncSetIsLoading(true);
     setError(null);
     setLastAction(() => () => submitAnswer(answer, inputMode));
     
+    const payload = {
+      sessionId: currentSessionId,
+      language: selectedLanguageRef.current,
+      assessmentType: assessmentTypeRef.current,
+      answer,
+      inputMode: inputMode || 'touch',
+      ayushAssessments: ayushAssessmentsRef.current,
+    };
+    console.log('[VOICE] Sending /interview request:', JSON.stringify(payload));
+
     try {
       const data = await apiSubmitInterviewAnswer(
-        sessionId,
-        selectedLanguage,
-        assessmentType,
+        currentSessionId,
+        selectedLanguageRef.current,
+        assessmentTypeRef.current,
         answer,
         inputMode || 'touch',
-        ayushAssessments
+        ayushAssessmentsRef.current
       );
+      console.log('[VOICE] /interview response received:', JSON.stringify(data));
       handleApiResponse(data);
       setError(null);
     } catch (err) {
+      console.error('[VOICE] /interview request failed:', err);
       setError(err.message || 'Failed to submit answer. Please try again.');
     } finally {
-      setIsLoading(false);
+      syncSetIsLoading(false);
+      console.log('[VOICE] submitAnswer finished, isLoading reset to false');
     }
-  }, [sessionId, selectedLanguage, assessmentType, ayushAssessments, isLoading, handleApiResponse]);
+  }, [handleApiResponse]);
 
   const retryLastAction = useCallback(() => {
     if (lastAction) {
       lastAction();
-    } else if (!sessionId) {
-      startInterview(selectedLanguage, assessmentType);
+    } else if (!sessionIdRef.current) {
+      startInterview(selectedLanguageRef.current, assessmentTypeRef.current);
     }
-  }, [lastAction, sessionId, selectedLanguage, assessmentType, startInterview]);
+  }, [lastAction, startInterview]);
 
   const submitVoiceAnswer = useCallback(async (audioBlob) => {
-    if (!sessionId) return;
-    setIsTranscribing(true);
+    const currentSessionId = sessionIdRef.current;
+    const currentIsLoading = isLoadingRef.current;
+    const currentIsTranscribing = isTranscribingRef.current;
+
+    console.log('[VOICE] submitVoiceAnswer called:', {
+      blobSize: audioBlob?.size,
+      blobType: audioBlob?.type,
+      sessionId: currentSessionId,
+      isLoading: currentIsLoading,
+      isTranscribing: currentIsTranscribing,
+    });
+
+    if (!currentSessionId) {
+      console.error('[VOICE] submitVoiceAnswer BLOCKED — sessionId is null');
+      return;
+    }
+    if (currentIsLoading) {
+      console.error('[VOICE] submitVoiceAnswer BLOCKED — isLoading is true');
+      return;
+    }
+    if (currentIsTranscribing) {
+      console.error('[VOICE] submitVoiceAnswer BLOCKED — isTranscribing is true');
+      return;
+    }
+
+    syncSetIsTranscribing(true);
     setError(null);
     
     let transcript = '';
     try {
-      const transcribeData = await apiTranscribeAudio(audioBlob, selectedLanguage);
-      if (transcribeData.success && transcribeData.transcript) {
-        transcript = transcribeData.transcript;
+      // useVoiceRecorder already converts to WAV; skip redundant conversion
+      let wavBlob = audioBlob;
+      if (!audioBlob.type || !audioBlob.type.includes('wav')) {
+        console.log('[VOICE] Blob is not WAV, converting:', audioBlob.type);
+        wavBlob = await convertBlobToWav(audioBlob);
+        console.log('[VOICE] WAV conversion completed, size:', wavBlob.size);
       } else {
-        // success is false, or empty transcript -> treated as no speech detected
-        setError('We couldn\'t hear your answer. Please try again.');
-        setIsTranscribing(false);
+        console.log('[VOICE] Blob is already WAV, skipping conversion:', audioBlob.type, 'size:', audioBlob.size);
+      }
+
+      const lang = selectedLanguageRef.current;
+      console.log('[VOICE] Sending audio to /transcribe, language:', lang, 'WAV size:', wavBlob.size);
+
+      const transcribeData = await apiTranscribeAudio(wavBlob, lang, 'wav');
+      console.log('[VOICE] /transcribe response:', JSON.stringify(transcribeData));
+      console.log('[VOICE] transcribeData.success:', transcribeData.success);
+      console.log('[VOICE] transcribeData.transcript:', transcribeData.transcript);
+
+      if (transcribeData.success && transcribeData.transcript && transcribeData.transcript.trim().length > 0) {
+        transcript = transcribeData.transcript.trim();
+        console.log('[VOICE] Transcript received:', transcript);
+        console.log('[VOICE] Transcript length:', transcript.length);
+      } else {
+        const msg = transcribeData.message || "We couldn't hear your answer. Please tap and try speaking again.";
+        console.warn('[VOICE] Transcription returned empty or failed:', transcribeData);
+        setError(msg);
+        syncSetIsTranscribing(false);
         return;
       }
     } catch (err) {
-      console.error(err);
-      setError('Transcription failed. Please try again.');
-      setIsTranscribing(false);
+      console.error('[VOICE] Transcription error:', err);
+      setError(err.message || 'Transcription failed. Please try again or use the touch options.');
+      syncSetIsTranscribing(false);
       return;
     }
     
-    setIsTranscribing(false);
-    
-    // Now submit the transcript to /interview
-    await submitAnswer(transcript, 'text'); // the backend expects 'text' for transcribed voice, or 'voice' if it's considered voice input mode. The prompt says input_mode: 'voice' does not perform transcription, but if we transcribe it, we can probably send input_mode: 'voice' alongside the transcript. Let's send input_mode: 'voice' just in case the backend tracks it. Wait, prompt says: "input_mode: 'voice' DOES NOT perform transcription. Voice is a two-step process... record audio -> POST /transcribe -> transcript -> POST /interview". It's safe to send inputMode 'voice' with the transcript text.
-  }, [sessionId, selectedLanguage, submitAnswer]);
+    syncSetIsTranscribing(false);
+    console.log('[VOICE] isTranscribing set to false, calling submitAnswer...');
+    console.log('[VOICE] Calling submitAnswer() with transcript:', transcript, 'inputMode: voice');
+    console.log('[VOICE] sessionId at this point:', sessionIdRef.current);
+    console.log('[VOICE] patientMessage (transcript):', transcript);
+
+    // Seamlessly forward the resulting transcript into the existing Task 2 answer submission flow
+    await submitAnswer(transcript, 'voice');
+    console.log('[VOICE] submitAnswer() completed');
+  }, [submitAnswer]);
 
   return {
     sessionId,
@@ -151,6 +261,6 @@ export function useInterview() {
     submitVoiceAnswer,
     resetInterview,
     retryLastAction,
-    setAyushAssessments
+    setAyushAssessments: syncSetAyushAssessments,
   };
 }

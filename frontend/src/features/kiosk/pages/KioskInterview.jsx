@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaHospital,
@@ -16,6 +16,7 @@ import QuestionRenderer from '../components/QuestionRenderer';
 import RetryNote from '../components/RetryNote';
 import InterviewCompletion from '../components/InterviewCompletion';
 import KioskNavbar from '../components/KioskNavbar';
+import VoiceRecorder from '../components/VoiceRecorder';
 
 const PHASES = [
   { key: 'chief_complaint', label: 'Chief Complaint' },
@@ -49,10 +50,13 @@ export default function KioskInterview() {
   const selectedLanguage = location.state?.language || 'en';
   const assessmentType = location.state?.assessmentType || 'modern';
 
+  const [isInitialComplaint, setIsInitialComplaint] = useState(true);
+
   const {
     sessionId,
     currentQuestion,
     isLoading,
+    isTranscribing,
     error,
     interviewComplete,
     redFlagDetected,
@@ -61,6 +65,7 @@ export default function KioskInterview() {
     clinicalSummary,
     startInterview,
     submitAnswer,
+    submitVoiceAnswer,
     retryLastAction,
     resetInterview
   } = useInterview();
@@ -78,8 +83,13 @@ export default function KioskInterview() {
     navigate('/kiosk');
   };
 
-  const handleTouchSubmit = (answer) => {
-    submitAnswer(answer, 'touch');
+  const handleTouchSubmit = async (answer) => {
+    await submitAnswer(answer, 'touch');
+    setIsInitialComplaint(false);
+  };
+  const handleVoiceSubmit = async (audioBlob) => {
+    await submitVoiceAnswer(audioBlob);
+    setIsInitialComplaint(false);
   };
 
   const currentSection = currentQuestion?.section || 'chief_complaint';
@@ -104,11 +114,12 @@ export default function KioskInterview() {
 
         {/* Completion Main View */}
         <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8 flex flex-col justify-center">
-          <InterviewCompletion 
+          <InterviewCompletion
             alertTriggered={alertTriggered}
             redFlagDetected={redFlagDetected}
             redFlagSeverity={redFlagSeverity}
-            onReset={resetInterview} 
+            clinicalSummary={clinicalSummary}
+            onReset={resetInterview}
           />
         </main>
       </div>
@@ -149,13 +160,12 @@ export default function KioskInterview() {
             return (
               <div key={p.key} className="flex items-center gap-2 flex-shrink-0">
                 <div
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                    isCurrent
-                      ? 'bg-teal-600 text-white shadow-sm'
-                      : isCompleted
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${isCurrent
+                    ? 'bg-teal-600 text-white shadow-sm'
+                    : isCompleted
                       ? 'bg-teal-50 text-teal-700 border border-teal-200'
                       : 'bg-slate-100 text-slate-400'
-                  }`}
+                    }`}
                 >
                   {isCompleted ? (
                     <FaCheck className="text-[10px]" />
@@ -254,12 +264,34 @@ export default function KioskInterview() {
               <RetryNote note={currentQuestion.note} />
             )}
 
+            {/* Voice Capture Option - Initial Complaint Only */}
+            {isInitialComplaint && (
+              <>
+                <div className="mt-6 mb-4">
+                  <VoiceRecorder
+                    onVoiceSubmit={handleVoiceSubmit}
+                    isTranscribing={isTranscribing}
+                    disabled={isLoading || isTranscribing}
+                  />
+                </div>
+
+                {/* Subtle Divider: Voice or Touch */}
+                <div className="flex items-center gap-4 my-6">
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Or answer with touch below
+                  </span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                </div>
+              </>
+            )}
+
             {/* Touch Question Option Input Widgets */}
-            <div className="mt-6">
-              <QuestionRenderer 
-                question={currentQuestion} 
-                onSubmit={handleTouchSubmit} 
-                disabled={isLoading} 
+            <div className="mt-2">
+              <QuestionRenderer
+                question={currentQuestion}
+                onSubmit={handleTouchSubmit}
+                disabled={isLoading || isTranscribing}
               />
             </div>
           </div>
