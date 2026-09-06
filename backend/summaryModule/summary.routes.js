@@ -101,14 +101,8 @@ router.patch('/:id/status', async (req, res) => {
       familyHistory !== undefined || 
       personalHistory !== undefined
     ) {
-      languageOutputs = await updateSummaryTranslation({
-        chiefComplaint,
-        hpi,
-        pastHistory,
-        drugHistory, 
-        familyHistory,
-        personalHistory
-      });
+      const englishNarrative = `Chief Complaint: ${chiefComplaint || ''}. HPI: ${hpi || ''}. Past History: ${pastHistory || ''}. Drug History: ${drugHistory || ''}. Family History: ${familyHistory || ''}. Personal History: ${personalHistory || ''}`;
+      languageOutputs = { en: englishNarrative, hi: '' }; // stale Hindi cleared; re-translated lazily on next Hindi tab click
     }
 
     // Build update payload, capturing text edits and newly translated outputs if provided
@@ -135,6 +129,65 @@ router.patch('/:id/status', async (req, res) => {
     }
 
     res.json({ success: true, data: updatedDoc });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.get('/:id/audio', async (req, res) => {
+  try {
+    const { lang } = req.query;
+    const doc = await Summary.findById(req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Summary not found' });
+
+    const text = doc.languageOutputs?.[lang] || doc.languageOutputs?.en;
+    if (!text) return res.status(400).json({ error: 'No narrative text available' });
+
+    const ttsResponse = await fetch(process.env.TTS_ENDPOINT || 'http://localhost:5001/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, lang: lang === 'hi' ? 'hi' : 'en' })
+    });
+
+    if (!ttsResponse.ok) {
+      return res.status(502).json({ error: 'TTS service failed' });
+    }
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    const buffer = Buffer.from(await ttsResponse.arrayBuffer());
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// On-demand Hindi translation: only called when user actually views the Hindi tab
+router.get('/:id/translate', async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ error: 'Database connection not ready.' });
+    }
+
+    const { lang } = req.query;
+    if (lang !== 'hi') {
+      return res.status(400).json({ error: 'Only lang=hi is supported for on-demand translation.' });
+    }
+
+    const doc = await Summary.findById(req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Summary not found.' });
+
+    // Already translated earlier — return cached value, skip re-translating
+    if (doc.languageOutputs?.hi) {
+      return res.json({ success: true, hi: doc.languageOutputs.hi });
+    }
+
+    const { translateTextViaIndicTrans2 } = require('./summary.service');
+    const hindiTranslation = await translateTextViaIndicTrans2(doc.languageOutputs.en, 'hi');
+
+    doc.languageOutputs.hi = hindiTranslation;
+    await doc.save();
+
+    res.json({ success: true, hi: hindiTranslation });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
