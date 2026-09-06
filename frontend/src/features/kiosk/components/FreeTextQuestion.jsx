@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaArrowRight, FaTimes } from 'react-icons/fa';
 
-export default function FreeTextQuestion({ onSubmit, disabled }) {
+export default function FreeTextQuestion({ question, onSubmit, disabled }) {
   const [text, setText] = useState('');
+
+  useEffect(() => {
+    setText('');
+  }, [question?.id]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
