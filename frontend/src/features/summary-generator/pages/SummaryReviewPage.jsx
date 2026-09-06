@@ -6,6 +6,7 @@ export default function SummaryReviewPage() {
   const [formData, setFormData] = useState({});
   const [activeLang, setActiveLang] = useState('en'); // Task 5: Interactive language switcher tab ('en' or 'hi')
   const [error, setError] = useState(null);
+  const [hindiLoading, setHindiLoading] = useState(false);
 
   useEffect(() => {
     // ===== TEMPORARY TEST BLOCK — START =====
@@ -72,6 +73,28 @@ export default function SummaryReviewPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleHindiClick = async () => {
+  setActiveLang('hi');
+  if (summary.languageOutputs?.hi) return; // already translated, nothing to fetch
+
+  setHindiLoading(true);
+    try {
+      const res = await fetch(`/api/summary/${summary._id}/translate?lang=hi`);
+      const json = await res.json();
+      if (res.ok) {
+        setSummary(prev => ({
+          ...prev,
+          languageOutputs: { ...prev.languageOutputs, hi: json.hi }
+        }));
+      }
+    } catch (err) {
+      console.error('Hindi translation fetch failed:', err.message);
+    } finally {
+      setHindiLoading(false);
+    }
+  };
+
+
   const updateStatus = async (status) => {
     if (!summary || !summary._id) {
       alert("Summary ID is missing!");
@@ -121,15 +144,24 @@ export default function SummaryReviewPage() {
                 English
               </button>
               <button 
-                onClick={() => setActiveLang('hi')}
+                onClick={handleHindiClick}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${activeLang === 'hi' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border hover:bg-gray-100'}`}
               >
                 Hindi (हिन्दी)
               </button>
+              <button
+                onClick={() => new Audio(`/api/summary/${summary._id}/audio?lang=${activeLang}`).play()}
+                disabled={activeLang === 'hi' && hindiLoading}
+                className="px-3 py-1 text-xs font-semibold rounded-lg bg-teal-100 text-teal-800 hover:bg-teal-200"
+              >
+                🔊 Play
+              </button>
             </div>
           </div>
           <p className="text-sm text-gray-700 bg-white p-3 rounded-lg border italic">
-            {summary.languageOutputs?.[activeLang] || 'Translation output loading...'}
+            {activeLang === 'hi' && hindiLoading
+              ? 'Translating to Hindi...'
+              : (summary.languageOutputs?.[activeLang] || 'Translation output loading...')}
           </p>
         </div>
 

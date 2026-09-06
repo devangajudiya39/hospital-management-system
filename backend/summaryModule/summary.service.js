@@ -138,8 +138,7 @@ Respond ONLY as a valid JSON object matching this exact structure:
   }
 
   const englishNarrative = parsed.languageOutputs?.en || `Chief Complaint: ${parsed.chiefComplaint}. HPI: ${parsed.hpi}`;
-  const hindiTranslation = await translateTextViaIndicTrans2(englishNarrative, 'hi');
-  parsed.languageOutputs = { en: englishNarrative, hi: hindiTranslation };
+  parsed.languageOutputs = { en: englishNarrative, hi: '' }; // Hindi generated lazily, on-demand via GET /:id/translate
 
   const normalizedTimeline = documentTimeline.length > 0
     ? documentTimeline.map(item => ({
@@ -164,4 +163,4 @@ async function updateSummaryTranslation(updatedFields) {
   return { en: englishNarrative, hi: hindiTranslation };
 }
 
-module.exports = { generateSummary, updateSummaryTranslation };
+module.exports = { generateSummary, updateSummaryTranslation, translateTextViaIndicTrans2 };    //(Bilingual EN/HI: lazy Hindi translation via IndicTrans2, TTS audio playback, fast Accept/Amend)
