@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const { generateSummary, updateSummaryTranslation } = require('./summary.service');
 const Summary = require('./summary.model');
-const { buildDocumentTimeline } = require('./adapters/documentAdapter'); // <-- ADD THIS LINE (new import, alongside the others)
+const { buildDocumentTimeline, buildInvestigations } = require('./adapters/documentAdapter');
 
 
 // Universal integration endpoint: Accepts payloads from Module A (Nisarg) & Module B (Devang)
@@ -17,7 +17,7 @@ router.post('/generate', async (req, res) => {
 
     // <-- ADD THIS LINE (new, right after the destructure above, before calling generateSummary)
     const finalTimeline = documentTimeline || (analyzedDocuments ? buildDocumentTimeline(analyzedDocuments) : undefined);
-
+    const finalInvestigations = analyzedDocuments ? buildInvestigations(analyzedDocuments) : [];
     // Call service layer with cross-module inputs (will safely fallback to mock data if empty)
     const structuredSummary = await generateSummary(interviewData, finalTimeline); // <-- CHANGED: documentTimeline -> finalTimeline
 
@@ -57,6 +57,7 @@ router.post('/generate', async (req, res) => {
       $set: {
         ...structuredSummary,
         documentTimeline: mergedTimeline,
+        investigations: finalInvestigations.length > 0 ? finalInvestigations : structuredSummary.investigations,
         patientId: targetPatientId,
         status: 'pending_review',
         updatedAt: Date.now()

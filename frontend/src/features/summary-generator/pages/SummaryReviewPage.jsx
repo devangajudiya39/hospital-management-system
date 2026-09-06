@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import StatusBadge from '../components/StatusBadge';
+// import prescriptionSample from '../../../../backend/prescription-sample.json'; // adjust path as needed
+// import labSample from '../../../../backend/lab-report-sample.json';
 
 export default function SummaryReviewPage() {
   const [summary, setSummary] = useState(null);
@@ -9,47 +11,12 @@ export default function SummaryReviewPage() {
   const [hindiLoading, setHindiLoading] = useState(false);
 
   useEffect(() => {
-    // ===== TEMPORARY TEST BLOCK — START =====
-    // Paste the full contents of backend/prescription-sample.json into this object,
-    // test the UI, then REVERT this whole block back to the simple version below
-    // (the original single-line body) once you've confirmed "Prescriptions" renders.
-    const testPrescriptionData = {
-      "printed_ocr": "Dr. R. K. Sharma Sharma Gunic MBBS, MD (Medicine) Kanpur - 208001 Reg. No. 58746 Ph.: 0512-2345678 SS Name : Retut Vexma Age / Sex : 2e/M Date : 15 [05 [2024 Ix oO Prracetamel 500 ma = | tab trie daily after food 5 days (2) Tbuprofen \u201c00 ma - | tab twice daily after food 3 days 1 cap three times daily after food 5 days (4) Pamtoprazele Lo \"4 - | tab once daily before breakfast 5 daw: ee Dr. R. K. Sharma Reg. No. 58746",
-      "handwritten_ocr": ["Reg. No. 58746. S.0005.0005. Philip St.2-343075", "Rohit Verma -000 Age 1 Sex : 28 (M.", "CD Paracetamol 500 mg", "- I tab thrice daily after food # 5 days", "Q Iburpnofen 400 mg", "\" \" tab twice daily after food # 3 days", "O Amoxicillin 500 mg", "- I cap three times daily after food - 5 days", "Pantoprazole 40 mg", "\" I tab once daily before breakfast - 5 days", "poor", "Fatt and David Wright spicy food . They", "nupkk Sharma"],
-      "structured_medications": [
-        { "drug_name": "Paracetamol", "dosage": "500 mg", "frequency": "thrice daily", "duration": "5 days" },
-        { "drug_name": "Ibuprofen", "dosage": "400 mg", "frequency": "twice daily", "duration": "3 days" },
-        { "drug_name": "Amoxicillin", "dosage": "500 mg", "frequency": "three times daily", "duration": "5 days" },
-        { "drug_name": "Pantoprazole", "dosage": "40 mg", "frequency": "once daily", "duration": "5 days" }
-      ],
-      "timeline": [
-        {
-          "date": "2024-05-15",
-          "events": [
-            { "type": "medication", "detail": "Paracetamol, 500 mg, thrice daily, 5 days" },
-            { "type": "medication", "detail": "Ibuprofen, 400 mg, twice daily, 3 days" },
-            { "type": "medication", "detail": "Amoxicillin, 500 mg, three times daily, 5 days" },
-            { "type": "medication", "detail": "Pantoprazole, 40 mg, once daily, 5 days" }
-          ]
-        }
-      ]
-    };
-
-    fetch('/api/summary/generate', { 
-        method: 'POST', 
-        headers: {'Content-Type':'application/json'}, 
-        body: JSON.stringify({
-          patientId: 'mock-patient-001',
-          analyzedDocuments: [{ type: 'prescription', data: testPrescriptionData }]
-        })
+    fetch('/api/summary/generate', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ patientId: 'sample-patient-001' })
     })
     // ===== TEMPORARY TEST BLOCK — END =====
-    // ORIGINAL (revert to this):
-    // fetch('/api/summary/generate', {
-    //     method: 'POST',
-    //     headers: {'Content-Type':'application/json'},
-    //     body: JSON.stringify({ patientId: 'mock-patient-001' })
-    // })
      .then(async (r) => {
         const json = await r.json();
         if (!r.ok) throw new Error(json.error || 'Failed to generate summary');

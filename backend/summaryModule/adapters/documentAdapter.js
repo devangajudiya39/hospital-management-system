@@ -20,10 +20,42 @@ function normalizePrescription(analyzeResponse) {
 // (name/value/flag) separately from documentTimeline — ask Devang if his
 // lab response includes a normal/abnormal flag per test.
 function normalizeLabReport(analyzeResponse) {
-  return [];
+  if (!analyzeResponse || !Array.isArray(analyzeResponse.tests)) return [];
+
+  const realTests = analyzeResponse.tests.filter(t => t.range_source === 'report_flag');
+
+  return realTests.map(test => ({
+    // No structured date field in Devang's lab response yet — using processing
+    // date as a placeholder. Revisit once/if he adds a report date field.
+    date: new Date(),
+    event: `${test.test_name}: ${test.value}${test.unit ? ' ' + test.unit : ''} (${test.status})`,
+    sourceDocument: 'Lab Report (OCR)',
+    type: 'lab'
+  }));
 }
 
-// TODO(Vedanti): implement once Devang's general document-extraction endpoint is live.
+// Separately extracts investigations for the Summary schema's dedicated
+// `investigations` field (name/value/flag) — kept apart from documentTimeline
+// since investigations has its own structured slot in summary.model.js.
+function extractInvestigations(analyzeResponse) {
+  if (!analyzeResponse || !Array.isArray(analyzeResponse.tests)) return [];
+
+  return analyzeResponse.tests
+    .filter(t => t.range_source === 'report_flag')
+    .map(t => ({
+      name: t.test_name,
+      value: `${t.value}${t.unit ? ' ' + t.unit : ''}`,
+      flag: t.status // actual values are 'normal'/'high'/'low', not just 'normal'/'abnormal'
+    }));
+}
+
+function buildInvestigations(analyzedDocuments = []) {
+  return analyzedDocuments.flatMap(({ type, data }) => {
+    if (type === 'lab') return extractInvestigations(data);
+    return [];
+  });
+}
+
 function normalizeGeneralDocument(analyzeResponse) {
   return [];
 }
@@ -37,4 +69,4 @@ function buildDocumentTimeline(analyzedDocuments = []) {
   });
 }
 
-module.exports = { normalizePrescription, normalizeLabReport, normalizeGeneralDocument, buildDocumentTimeline };
+module.exports = { normalizePrescription, normalizeLabReport, normalizeGeneralDocument, buildDocumentTimeline, extractInvestigations, buildInvestigations };
