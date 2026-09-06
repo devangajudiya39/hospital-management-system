@@ -10,34 +10,34 @@ export default function QuestionRenderer({ question, onSubmit, disabled }) {
   switch (question.type) {
     case 'single_select':
       return (
-        <SingleSelectQuestion 
-          question={question} 
-          onSubmit={onSubmit} 
-          disabled={disabled} 
+        <SingleSelectQuestion
+          question={question}
+          onSubmit={onSubmit}
+          disabled={disabled}
         />
       );
     case 'multi_select':
       return (
-        <MultiSelectQuestion 
-          question={question} 
-          onSubmit={onSubmit} 
-          disabled={disabled} 
+        <MultiSelectQuestion
+          question={question}
+          onSubmit={onSubmit}
+          disabled={disabled}
         />
       );
     case 'free_text':
       return (
-        <FreeTextQuestion 
-          question={question} 
-          onSubmit={onSubmit} 
-          disabled={disabled} 
+        <FreeTextQuestion
+          question={question}
+          onSubmit={onSubmit}
+          disabled={disabled}
         />
       );
     case 'scale_1_10':
       return (
-        <ScaleQuestion 
-          question={question} 
-          onSubmit={onSubmit} 
-          disabled={disabled} 
+        <ScaleQuestion
+          question={question}
+          onSubmit={onSubmit}
+          disabled={disabled}
         />
       );
     default:
