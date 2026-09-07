@@ -5,7 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const port = 8081;
+
 
 app.use(express.json());
 app.use(cors({
@@ -86,5 +86,5 @@ app.get("/health", (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
+    console.log(`Server listening on port ${process.env.PORT}`);
 });
