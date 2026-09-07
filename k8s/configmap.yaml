@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hms-config
+  namespace: hms
+data:
+  PORT: "8080"
+  REDIS_URL: "redis://redis.hms.svc.cluster.local:6379"
+  RABBITMQ_URL: "amqp://rabbitmq.hms.svc.cluster.local:5672"
