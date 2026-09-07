@@ -1,6 +1,8 @@
 const { connectRabbitMQ, getChannel } = require("../rabbitmqClient");
 const startEmailWorker = require("./emailWorker");
 const startSimulatedWorker = require("./simulatedWorkers");
+const startAlertWorker = require("./alertWorker");
+const { initAlertPublisher } = require("../alertModule/alertRedisBridge");
 
 const bootWorkers = async () => {
     try {
@@ -25,6 +27,12 @@ const bootWorkers = async () => {
         await startSimulatedWorker(channel, 'ocr.queue', 'OCR Worker');
         await startSimulatedWorker(channel, 'asr.queue', 'ASR Worker');
         await startSimulatedWorker(channel, 'summary.queue', 'SUMMARY Worker');
+        
+        // Initialize Redis publisher for alert IPC bridge
+        await initAlertPublisher();
+
+        // Start Alert Worker
+        await startAlertWorker(channel);
         
         console.log("[WORKER] All workers successfully booted.");
     } catch (error) {

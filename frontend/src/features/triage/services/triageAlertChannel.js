@@ -110,7 +110,7 @@ export function normalizeAlert(raw) {
  */
 export function subscribeToTriageAlerts({ onAlert, onStatusChange }) {
   let isSubscribed = true;
-  let sseSource = null;
+  let abortController = null;
   let wsSocket = null;
   let broadcastChannel = null;
 
@@ -189,32 +189,58 @@ export function subscribeToTriageAlerts({ onAlert, onStatusChange }) {
         console.warn('[TRIAGE_ALERT] Failed to initialize WebSocket:', wsErr);
         updateStatus('error', wsErr.message);
       }
-    } else if (typeof EventSource !== 'undefined') {
+    } else {
+      // Use fetch() streaming for SSE to support Authorization headers
       try {
-        sseSource = new EventSource(ALERT_STREAM_URL);
+        const token = localStorage.getItem('token');
+        abortController = new AbortController();
 
-        sseSource.onopen = () => {
+        fetch(ALERT_STREAM_URL, {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Accept': 'text/event-stream'
+          },
+          signal: abortController.signal
+        })
+        .then(async (response) => {
+          if (!response.ok) {
+            updateStatus('error', `Stream failed: ${response.status} ${response.statusText}`);
+            return;
+          }
+
           updateStatus('connected', 'SSE live alert stream connected');
-        };
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let buffer = '';
 
-        sseSource.onmessage = (event) => {
-          handleIncomingData(event.data);
-        };
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
 
-        sseSource.addEventListener('alert', (event) => {
-          handleIncomingData(event.data);
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // keep the last partial line in the buffer
+
+            for (let line of lines) {
+              if (line.startsWith('data: ')) {
+                const dataStr = line.substring(6).trim();
+                if (dataStr) {
+                  handleIncomingData(dataStr);
+                }
+              }
+            }
+          }
+        })
+        .catch((err) => {
+          if (err.name === 'AbortError') {
+            console.log('[TRIAGE_ALERT] Stream aborted');
+          } else {
+            console.warn('[TRIAGE_ALERT] SSE stream error:', err);
+            updateStatus('error', 'Alert channel stream unreachable');
+          }
         });
-
-        sseSource.addEventListener('red_flag', (event) => {
-          handleIncomingData(event.data);
-        });
-
-        sseSource.onerror = (err) => {
-          console.warn('[TRIAGE_ALERT] SSE stream error:', err);
-          updateStatus('error', 'Alert channel stream unreachable');
-        };
       } catch (sseErr) {
-        console.warn('[TRIAGE_ALERT] Failed to initialize EventSource:', sseErr);
+        console.warn('[TRIAGE_ALERT] Failed to initialize fetch SSE:', sseErr);
         updateStatus('error', sseErr.message);
       }
     }
@@ -250,13 +276,13 @@ export function subscribeToTriageAlerts({ onAlert, onStatusChange }) {
       wsSocket = null;
     }
 
-    if (sseSource) {
+    if (abortController) {
       try {
-        sseSource.close();
+        abortController.abort();
       } catch {
         // ignore
       }
-      sseSource = null;
+      abortController = null;
     }
 
     updateStatus('disconnected', 'Alert channel disconnected');
