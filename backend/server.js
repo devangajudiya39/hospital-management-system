@@ -55,6 +55,10 @@ connectRedis();
 const { connectRabbitMQ } = require("./rabbitmqClient");
 connectRabbitMQ();
 
+// Alert Redis Pub/Sub Subscriber (receives alerts from worker container)
+const { startAlertSubscription } = require("./alertModule/alertRedisBridge");
+startAlertSubscription();
+
 // Routers
 const authRouter = require("./router/auth.js");
 const adminRouter = require("./router/admin.js");
@@ -65,6 +69,7 @@ const pharmacyRouter = require("./router/pharmacy.js");
 const receptionistRouter = require("./router/receptionist.js");
 const billRouter = require("./router/bill.js");
 const consentRouter = require("./router/consent.js");
+const alertRouter = require("./alertModule/alert.routes.js");
 
 // API Mounts
 app.use("/api/auth", authRouter);
@@ -76,6 +81,7 @@ app.use("/api/pharmacy", pharmacyRouter);
 app.use("/api/receptionist", receptionistRouter);
 app.use("/api/billing", billRouter);
 app.use("/api/consent", consentRouter);
+app.use("/api/triage/alerts", alertRouter);
 
 
 app.get("/", (req, res) => {

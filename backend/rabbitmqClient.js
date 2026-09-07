@@ -4,7 +4,7 @@ const crypto = require('crypto');
 let connection = null;
 let channel = null;
 
-const QUEUES = ['email.queue', 'ocr.queue', 'asr.queue', 'summary.queue'];
+const QUEUES = ['email.queue', 'ocr.queue', 'asr.queue', 'summary.queue', 'alert-events'];
 const DLX = 'dead_letter_exchange';
 
 const connectRabbitMQ = async () => {
