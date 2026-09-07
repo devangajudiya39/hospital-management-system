@@ -1,0 +1,96 @@
+/**
+ * Summary API Service
+ * 
+ * Encapsulates communication with Person 4 (Vedanti)'s summary backend:
+ * - POST /api/summary/generate
+ * - PATCH /api/summary/:id/status
+ * - GET /api/summary/:id/translate?lang=hi
+ * - GET /api/summary/:id/audio?lang=en|hi
+ */
+
+const BASE_URL = '/api/summary';
+
+/**
+ * Generates or fetches an integrated clinical summary.
+ * @param {Object} params
+ * @param {string} [params.patientId]
+ * @param {Object} [params.interviewData]
+ * @param {Array} [params.documentTimeline]
+ * @param {Array} [params.analyzedDocuments]
+ * @returns {Promise<Object>} The summary document data
+ */
+export async function generateSummary({
+  patientId = 'sample-patient-001',
+  interviewData,
+  documentTimeline,
+  analyzedDocuments
+} = {}) {
+  const payload = { patientId };
+  if (interviewData) payload.interviewData = interviewData;
+  if (documentTimeline) payload.documentTimeline = documentTimeline;
+  if (analyzedDocuments) payload.analyzedDocuments = analyzedDocuments;
+
+  const res = await fetch(`${BASE_URL}/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.error || json.message || 'Failed to generate summary');
+  }
+
+  return json.data || json;
+}
+
+/**
+ * Updates summary status and saves doctor amendments/edits.
+ * @param {string} id - The MongoDB ObjectId of the summary document
+ * @param {Object} updateData - Status and edited field values
+ * @returns {Promise<Object>} Updated summary document data
+ */
+export async function updateSummaryStatus(id, updateData) {
+  if (!id) throw new Error('Summary ID is required to update status');
+
+  const res = await fetch(`${BASE_URL}/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updateData)
+  });
+
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.error || json.message || 'Failed to update summary status');
+  }
+
+  return json.data || json;
+}
+
+/**
+ * Requests on-demand Hindi translation of the clinical summary narrative.
+ * @param {string} id - The summary document ID
+ * @returns {Promise<string>} Translated Hindi text
+ */
+export async function fetchHindiTranslation(id) {
+  if (!id) throw new Error('Summary ID is required for translation');
+
+  const res = await fetch(`${BASE_URL}/${id}/translate?lang=hi`);
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.error || json.message || 'Failed to fetch Hindi translation');
+  }
+
+  return json.hi;
+}
+
+/**
+ * Returns the TTS audio endpoint URL for a given summary and language.
+ * @param {string} id - The summary document ID
+ * @param {'en'|'hi'} [lang='en']
+ * @returns {string} Endpoint URL for direct audio streaming
+ */
+export function getAudioStreamUrl(id, lang = 'en') {
+  return `${BASE_URL}/${id}/audio?lang=${lang}`;
+}
