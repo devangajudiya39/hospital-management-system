@@ -15,6 +15,7 @@ import LabDashboard from './component/lab/LabDashboard';
 import DocumentDigitizationPage from './features/document-digitization';
 import KioskHome from './features/kiosk/KioskHome';
 import KioskInterview from './features/kiosk/pages/KioskInterview';
+import TriageAlertScreen from './features/triage/TriageAlertScreen';
 const SummaryReviewPage = React.lazy(() =>
   import('./features/summary-generator/pages/SummaryReviewPage')
 );
@@ -37,6 +38,7 @@ function App() {
         <Route path="/document-digitization" element={<DocumentDigitizationPage />} />
         <Route path="/kiosk" element={<KioskHome/>}/>
         <Route path="/kiosk/interview" element={<KioskInterview/>}/>
+        <Route path="/triage" element={<TriageAlertScreen/>}/>
         <Route path="/summary-review" element={
           <Suspense fallback={<div>Loading...</div>}>
             <SummaryReviewPage /> 
