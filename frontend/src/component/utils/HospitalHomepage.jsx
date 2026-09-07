@@ -140,13 +140,13 @@ const HospitalHomepage = () => {
             ))}
             <li className="ml-2">
               <button className="flex items-center gap-2 px-5 py-2.5 teal-grad text-white text-sm font-bold rounded-xl shadow-md shadow-teal-300/40 hover:opacity-90 transition-all hover:scale-105"
-              onClick={ () => navigate("/login") }>
+                onClick={() => navigate("/login")}>
                 <FaCalendarCheck /> Book Appointment
               </button>
             </li>
             <li>
               <button className="flex items-center gap-1.5 px-4 py-2.5 border-2 border-teal-200 text-teal-700 text-sm font-bold rounded-xl hover:bg-teal-50 transition-all ml-1"
-              onClick={ () => navigate("/login") }>
+                onClick={() => navigate("/login")}>
                 <FaSignInAlt /> Login
               </button>
             </li>
@@ -203,15 +203,11 @@ const HospitalHomepage = () => {
 
             <div className="fade-up-3 flex flex-col sm:flex-row flex-wrap gap-4">
               <button className="group flex items-center justify-center gap-2.5 px-8 py-4 teal-grad text-white font-black rounded-2xl shadow-xl shadow-teal-600/40 hover:scale-105 transition-all duration-200 text-base cursor-pointer"
-              onClick={ () => navigate("/login") }>
+                onClick={() => navigate("/login")}>
                 <FaCalendarCheck /> Book Appointment
                 <FaArrowRight className="text-sm group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="group flex items-center justify-center gap-2.5 px-8 py-4 teal-grad text-white font-black rounded-2xl shadow-xl shadow-teal-600/40 hover:scale-105 transition-all duration-200 text-base cursor-pointer"
-              onClick={ () => navigate("/kiosk") }>
-                <FaHeartbeat /> Start Touch Consultation
-                <FaArrowRight className="text-sm group-hover:translate-x-1 transition-transform" />
-              </button>
+
               <button className="flex items-center justify-center gap-2.5 px-8 py-4 bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white font-bold rounded-2xl hover:bg-white/25 transition-all text-base">
                 <FaPhoneAlt className="text-teal-300" /> Emergency: 108
               </button>
@@ -330,11 +326,11 @@ const HospitalHomepage = () => {
                   <span className="flex items-center gap-2"><FaCheckCircle className="text-emerald-300" /> No Long Wait Times</span>
                   <span className="flex items-center gap-2"><FaCheckCircle className="text-emerald-300" /> Online & In-Person</span>
                   <span className="flex items-center gap-2"><FaCheckCircle className="text-emerald-300" /> All Insurances</span>
-                </div> 
+                </div>
               </div>
               <div className="flex flex-col gap-3 w-full md:w-auto">
                 <button className="flex items-center justify-center gap-2.5 px-8 py-4 bg-white text-teal-700 font-black rounded-2xl shadow-lg hover:bg-teal-50 transition-all hover:scale-105 whitespace-nowrap"
-                onClick={ () => navigate("/login") }>
+                  onClick={() => navigate("/login")}>
                   <FaCalendarCheck /> Book Appointment →
                 </button>
                 <button className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white/20 border-2 border-white/40 text-white font-bold rounded-2xl hover:bg-white/30 transition-all whitespace-nowrap">

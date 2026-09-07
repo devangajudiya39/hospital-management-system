@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import PatientNavbar from "./patientNavbar";
 export default function PatientDashboard() {
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
@@ -200,18 +200,17 @@ export default function PatientDashboard() {
   };
 
   return (
+  <>
+    <PatientNavbar />
+
     <div className="min-h-screen bg-slate-50 font-sans p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex justify-between items-center bg-teal-800 text-white p-6 rounded-2xl shadow-md">
-          <h1 className="text-3xl font-bold">Patient Portal</h1>
-          <div className="flex gap-4 items-center">
-            <span className="text-sm text-teal-200">Welcome, {JSON.parse(localStorage.getItem("user") || "{}").name || "Patient"}</span>
-            <button onClick={() => { localStorage.clear(); navigate("/login"); }} className="bg-rose-500 hover:bg-rose-600 px-4 py-2 rounded-lg font-bold transition-colors">Logout</button>
-          </div>
-        </header>
 
         {/* BOOKING SECTION */}
-        <section className="bg-white p-8 rounded-2xl shadow-sm border border-teal-100 relative overflow-hidden">
+        <section
+          id="appointments"
+          className="bg-white p-8 rounded-2xl shadow-sm border border-teal-100 relative overflow-hidden"
+        >
           <div className="absolute top-0 left-0 w-2 h-full bg-teal-500"></div>
           <h2 className="text-2xl font-bold text-slate-800 mb-6">Book New Appointment</h2>
           <form onSubmit={checkAvailability} className="flex flex-col md:flex-row gap-4 items-end">
@@ -253,7 +252,7 @@ export default function PatientDashboard() {
         </section>
 
         {/* DATA PANELS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div id="records" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[400px]">
             <h3 className="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">🏥 Medical History</h3>
             <div className="flex-1 overflow-y-auto pr-2 space-y-3">
@@ -458,5 +457,6 @@ export default function PatientDashboard() {
 
       </div>
     </div>
+     </>
   );
 }
