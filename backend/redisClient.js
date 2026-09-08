@@ -72,9 +72,34 @@ const delCache = async (key) => {
     }
 };
 
+/**
+ * Atomically sets a cache key ONLY if it does not already exist (SET NX EX).
+ * Used for distributed deduplication (e.g., alert trigger dedup across replicas).
+ *
+ * @param {string} key - Redis key.
+ * @param {*} value - Value to store (will be JSON.stringified).
+ * @param {number} ttlSeconds - Expiration time in seconds.
+ * @returns {Promise<boolean|null>} true = key set (new), false = key already existed, null = Redis unavailable/error.
+ */
+const setCacheNX = async (key, value, ttlSeconds) => {
+    if (!isConnected || !client) return null;
+    try {
+        const result = await client.set(key, JSON.stringify(value), {
+            NX: true,
+            EX: ttlSeconds
+        });
+        // redis returns 'OK' if the SET was performed, null if key already existed
+        return result === 'OK';
+    } catch (err) {
+        console.error(`[REDIS] SET NX Error for key ${key}:`, err);
+        return null;
+    }
+};
+
 module.exports = {
     connectRedis,
     getCache,
     setCache,
+    setCacheNX,
     delCache
 };

@@ -70,6 +70,7 @@ const receptionistRouter = require("./router/receptionist.js");
 const billRouter = require("./router/bill.js");
 const consentRouter = require("./router/consent.js");
 const alertRouter = require("./alertModule/alert.routes.js");
+const kioskAuthRouter = require("./alertModule/kioskAuth.js");
 
 // API Mounts
 app.use("/api/auth", authRouter);
@@ -82,6 +83,7 @@ app.use("/api/receptionist", receptionistRouter);
 app.use("/api/billing", billRouter);
 app.use("/api/consent", consentRouter);
 app.use("/api/triage/alerts", alertRouter);
+app.use("/api/kiosk", kioskAuthRouter);
 
 
 app.get("/", (req, res) => {
