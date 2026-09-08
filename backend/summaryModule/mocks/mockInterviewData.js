@@ -1,9 +1,4 @@
-// Mimics Nisarg's Module A `clinical_summary` object (from /interview response
-// once interview_complete: true). Per the Interview API Field Guide, the real
-// shape is NOT flat strings — it's arrays/objects grouped by section.
-// TODO(Vedanti): confirm exact literal keys with Nisarg/Swagger — this mock
-// follows the guide's described section structure as closely as possible.
-// Real clinical_summary shape confirmed from live /interview response (Nisarg's API)
+
 module.exports = {
   chief_complaint: 'fever',
   chief_complaint_display_name: 'Fever',

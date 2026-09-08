@@ -37,16 +37,67 @@ router.post('/generate', async (req, res) => {
         if (item.sourceDocument === 'System Default') return false;
         // Skip if an identical entry (same date + event) already exists — prevents
         // re-running /generate with the same document from creating duplicates
-        const alreadyExists = existingDoc.documentTimeline.some(
-          existing => existing.event === item.event && 
-          new Date(existing.date).getTime() === new Date(item.date).getTime()
-        );
-        return !alreadyExists;
+        const alreadyExists = existingDoc.documentTimeline.some(existing => {
+          if (existing.event !== item.event || existing.sourceDocument !== item.sourceDocument) return false;
+          if (item.type === 'prescription') {
+            return new Date(existing.date).getTime() === new Date(item.date).getTime();
+          }
+          return true; // lab entries have no real date — event+sourceDocument match is enough
         });
-        mergedTimeline = [...existingDoc.documentTimeline, ...newRealEntries];
+        return !alreadyExists;
+      });
+      mergedTimeline = [...existingDoc.documentTimeline, ...newRealEntries];
       } else {
         // This call had no new documents — keep exactly what was already there
         mergedTimeline = existingDoc.documentTimeline;
+      }
+    }
+    // ★★★ NEW BLOCK END
+
+        // ★★★ NEW BLOCK — preserve existing narrative fields when this call
+    // brought no new interviewData, instead of letting mock fallback
+    // (or an unrelated document-only call) silently overwrite real saved text
+    const hadNewInterviewData = Boolean(interviewData);
+    let textFields;
+    if (hadNewInterviewData) {
+      textFields = {
+        chiefComplaint: structuredSummary.chiefComplaint,
+        hpi: structuredSummary.hpi,
+        pastHistory: structuredSummary.pastHistory,
+        drugHistory: structuredSummary.drugHistory,
+        familyHistory: structuredSummary.familyHistory,
+        personalHistory: structuredSummary.personalHistory,
+        ros: structuredSummary.ros,
+        languageOutputs: structuredSummary.languageOutputs,
+        redFlagDetected: structuredSummary.redFlagDetected
+      };
+    } else if (existingDoc) {
+      textFields = {
+        chiefComplaint: existingDoc.chiefComplaint,
+        hpi: existingDoc.hpi,
+        pastHistory: existingDoc.pastHistory,
+        drugHistory: existingDoc.drugHistory,
+        familyHistory: existingDoc.familyHistory,
+        personalHistory: existingDoc.personalHistory,
+        ros: existingDoc.ros,
+        languageOutputs: existingDoc.languageOutputs,
+        redFlagDetected: existingDoc.redFlagDetected
+      };
+    } else {
+      textFields = structuredSummary; // brand-new patient, nothing to preserve — mock fallback is fine here
+    }
+
+    // ★★★ NEW BLOCK — same problem, same fix, for investigations: a call with
+    // only interviewData (no analyzedDocuments) must not wipe previously saved labs
+    let finalInvestigationsToSave = finalInvestigations;
+    if (finalInvestigations.length === 0) {
+      if (!hadNewInterviewData && structuredSummary.investigations?.length) {
+        // fell back to mock summary's investigations — don't save mock data
+        finalInvestigationsToSave = existingDoc?.investigations || [];
+      } else if (existingDoc?.investigations?.length) {
+        finalInvestigationsToSave = existingDoc.investigations;
+      } else {
+        finalInvestigationsToSave = structuredSummary.investigations || [];
       }
     }
     // ★★★ NEW BLOCK END
@@ -55,9 +106,9 @@ router.post('/generate', async (req, res) => {
     { patientId: targetPatientId },
     {
       $set: {
-        ...structuredSummary,
+        ...textFields,
         documentTimeline: mergedTimeline,
-        investigations: finalInvestigations.length > 0 ? finalInvestigations : structuredSummary.investigations,
+        investigations: finalInvestigationsToSave,
         patientId: targetPatientId,
         status: 'pending_review',
         updatedAt: Date.now()
@@ -74,6 +125,21 @@ router.post('/generate', async (req, res) => {
     });
   } catch (err) {
     console.error('Summary Generation Error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Fetch an existing summary by patientId (used by SummaryReviewPage on load —
+// does NOT trigger generation, just reads whatever was already saved)
+router.get('/by-patient/:patientId', async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ error: 'Database connection not ready.' });
+    }
+    const doc = await Summary.findOne({ patientId: req.params.patientId }).sort({ updatedAt: -1 });
+    if (!doc) return res.status(404).json({ error: 'No summary found for this patient.' });
+    res.json({ success: true, data: doc });
+  } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
