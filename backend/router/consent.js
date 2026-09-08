@@ -58,4 +58,75 @@ consentRouter.put("/:id/revoke", authenticate, async (req, res) => {
   }
 });
 
+// POST /api/consent/:id/abdm-init
+consentRouter.post("/:id/abdm-init", authenticate, async (req, res) => {
+  try {
+    const Consent = require("../models/Consent");
+    const Patient = require("../models/Patient");
+    const abdmWrapperClient = require("../services/abdm/abdmWrapperClient");
+
+    const consent = await Consent.findById(req.params.id);
+    if (!consent) return res.status(404).json({ message: "Consent not found" });
+
+    // Enforce patient ownership for safety if requester is a patient
+    if (req.user.role === "patient" && req.user.id !== consent.createdBy.toString()) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const patient = await Patient.findById(consent.patientId);
+    if (!patient || !patient.abhaAddress) {
+      return res.status(400).json({ message: "Patient lacks an associated ABHA address" });
+    }
+
+    const careContexts = req.body.careContexts;
+    if (!careContexts || !careContexts.length) {
+      return res.status(400).json({ message: "careContexts required to init ABDM consent" });
+    }
+
+    const result = await abdmWrapperClient.initiateConsent({
+      abhaAddress: patient.abhaAddress,
+      careContexts,
+      purpose: { text: consent.purpose, code: "CAREMGT", refUri: "wrapper" }
+    });
+
+    if (!result.success) {
+      return res.status(500).json({ message: "Failed to init ABDM consent", error: result.error });
+    }
+
+    res.json({ message: "ABDM Consent initiated", requestId: result.requestId });
+  } catch (error) {
+    console.error("ABDM Consent Init Error:", error);
+    res.status(500).json({ message: "Failed to initiate ABDM consent" });
+  }
+});
+
+// POST /api/consent/:id/abdm-fetch
+consentRouter.post("/:id/abdm-fetch", authenticate, async (req, res) => {
+  try {
+    const Consent = require("../models/Consent");
+    const abdmWrapperClient = require("../services/abdm/abdmWrapperClient");
+
+    const consent = await Consent.findById(req.params.id);
+    if (!consent) return res.status(404).json({ message: "Consent not found" });
+
+    if (consent.status !== 'GRANTED') {
+      return res.status(403).json({ message: "Consent is not GRANTED" });
+    }
+    if (!consent.abdmConsentId) {
+      return res.status(400).json({ message: "No ABDM artefact associated with this consent" });
+    }
+
+    const result = await abdmWrapperClient.requestHealthInformation(consent.abdmConsentId);
+    
+    if (!result.success) {
+      return res.status(500).json({ message: "Failed to fetch ABDM records", error: result.error });
+    }
+
+    res.json({ message: "Health information fetch requested", requestId: result.requestId });
+  } catch (error) {
+    console.error("ABDM Fetch Error:", error);
+    res.status(500).json({ message: "Failed to request health info" });
+  }
+});
+
 module.exports = consentRouter;

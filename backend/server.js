@@ -71,7 +71,7 @@ const billRouter = require("./router/bill.js");
 const consentRouter = require("./router/consent.js");
 const alertRouter = require("./alertModule/alert.routes.js");
 const kioskAuthRouter = require("./alertModule/kioskAuth.js");
-const abdmRouter = require("./router/abdm.js");
+// const abdmRouter = require("./router/abdm.js"); // Removed, imported below
 
 // API Mounts
 app.use("/api/auth", authRouter);
@@ -87,7 +87,9 @@ app.use("/api/triage/alerts", alertRouter);
 app.use("/api/kiosk", kioskAuthRouter);
 
 // ABDM Callbacks
+const { abdmRouter, notifyRouter } = require("./router/abdm.js");
 app.use("/v1", abdmRouter);
+app.use("/v0.5", notifyRouter);
 
 
 app.get("/", (req, res) => {

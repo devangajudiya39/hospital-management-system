@@ -6,11 +6,11 @@ const mongoose = require("mongoose");
 process.env.MASTER_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64');
 process.env.AUDIT_RETENTION_DAYS = "90";
 
-const abhaService = require("../services/abdm/abhaAssociationService");
+const abhaService = require('../services/abdm/abhaAssociationService');
 const Patient = require("../models/Patient");
 const Consultation = require("../models/Consultation");
 const auditService = require("../services/audit/auditService");
-const abdmRouter = require("../router/abdm");
+const { abdmRouter } = require("../router/abdm");
 const patientRouter = require("../router/patient");
 
 let auditLogs = [];

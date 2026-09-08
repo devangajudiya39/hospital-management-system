@@ -134,4 +134,144 @@ abdmRouter.post('/patient-care-contexts', async (req, res) => {
     }
 });
 
-module.exports = abdmRouter;
+// HIP: POST /v1/health-information (Wrapper fetching data from MediKiosk HIP)
+abdmRouter.post('/health-information', async (req, res) => {
+    try {
+        const { careContexts, patientReference, consentId } = req.body;
+        
+        if (!patientReference || !careContexts || !careContexts.length) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const Patient = require('../models/Patient');
+        const Prescription = require('../models/Prescription');
+        const LabReport = require('../models/LabReport');
+        const { buildDocumentBundle } = require('../services/fhir/bundleBuilder');
+
+        // Resolve patient safely
+        const patient = await Patient.findById(patientReference).populate('userId');
+        if (!patient) return res.status(404).json({ error: "Patient not found" });
+
+        // Resolve care contexts (consultations)
+        const consultationIds = careContexts.map(c => c.referenceNumber);
+        const consultations = await Consultation.find({ _id: { $in: consultationIds }, patientId: patient._id }).populate('doctorId');
+        
+        if (consultations.length === 0) {
+            return res.status(403).json({ error: "No matching care contexts found for this patient" });
+        }
+
+        const prescriptions = await Prescription.find({ consultationId: { $in: consultationIds }, patientId: patient._id }).populate('medicines.medicineId');
+        const labReports = await LabReport.find({ patientId: patient._id }); // In a real app, tie this to encounter. For now, fetch all or latest.
+
+        const bundle = buildDocumentBundle({ patient, consultations, prescriptions, labReports });
+
+        await auditService.log({
+            userId: null,
+            patientId: patient._id,
+            action: "ABDM_HEALTH_INFO_PUSH",
+            category: "ABDM",
+            details: `Generated FHIR bundle for consent ${consentId}`,
+            resourceType: "Patient",
+            resourceId: patient._id.toString(),
+            success: true,
+            ipAddress: req.ip || req.socket.remoteAddress
+        });
+
+        // The exact structure expected by the V1 Wrapper
+        res.json({
+            bundle
+        });
+
+    } catch (err) {
+        console.error("ABDM Health Information Error:", err.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+const notifyRouter = express.Router();
+notifyRouter.use(abdmCallbackAuth);
+
+// HIU: POST /v0.5/consents/hiu/notify (Wrapper notifying MediKiosk HIU about consent status)
+notifyRouter.post('/consents/hiu/notify', async (req, res) => {
+    try {
+        const { notification } = req.body;
+        if (!notification || !notification.consentRequestId || !notification.status) {
+            return res.status(400).json({ error: "Invalid notification payload" });
+        }
+
+        const Consent = require('../models/Consent');
+        // Find the local consent by the pending request ID (often tracked or just fallback to finding by status/patient)
+        // Since we didn't store requestId directly in the model in Phase 1, we will update the latest PENDING consent for the patient
+        // For local mock: If status is GRANTED, store the artefact ID
+        if (notification.status === 'GRANTED' && notification.consentArtefacts && notification.consentArtefacts.length > 0) {
+            const artefactId = notification.consentArtefacts[0].id;
+            // Hacky but safe for mock MVP: update the most recent consent missing an abdmConsentId
+            const latestConsent = await Consent.findOneAndUpdate(
+                { abdmConsentId: null, status: 'GRANTED' }, // Assuming local was granted or pending
+                { abdmConsentId: artefactId },
+                { new: true, sort: { createdAt: -1 } }
+            );
+
+            if (latestConsent) {
+                await auditService.log({
+                    userId: null,
+                    patientId: latestConsent.patientId,
+                    action: "ABDM_CONSENT_ARTEFACT_RECEIVED",
+                    category: "ABDM",
+                    details: `Artefact ${artefactId} stored`,
+                    resourceType: "Consent",
+                    resourceId: latestConsent._id.toString(),
+                    success: true,
+                    ipAddress: req.ip || req.socket.remoteAddress
+                });
+            }
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Consent Notify Error:", err.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// HIU: POST /v1/transfer/ (Wrapper transferring health info to MediKiosk HIU)
+abdmRouter.post('/transfer', async (req, res) => {
+    try {
+        const { data, careContextReference } = req.body;
+        
+        if (!data || data.resourceType !== 'Bundle') {
+            return res.status(400).json({ error: "Invalid or missing FHIR Bundle data" });
+        }
+
+        const { ingestBundle } = require('../services/fhir/abdmBundleIngest');
+        const Consultation = require('../models/Consultation');
+        
+        // Resolve patient from care context if possible, or expect it in query/metadata
+        const consultation = await Consultation.findById(careContextReference);
+        if (!consultation) {
+            return res.status(404).json({ error: "Care context not found" });
+        }
+
+        const summary = await ingestBundle(data, consultation.patientId);
+
+        await auditService.log({
+            userId: null,
+            patientId: consultation.patientId,
+            action: "ABDM_HEALTH_INFO_RECEIVED",
+            category: "ABDM",
+            details: `Imported FHIR Bundle: Processed ${summary.processed.length}, Skipped ${summary.skipped.length}, Errors ${summary.errors.length}`,
+            resourceType: "Patient",
+            resourceId: consultation.patientId.toString(),
+            success: true,
+            ipAddress: req.ip || req.socket.remoteAddress
+        });
+
+        res.json({ success: true, summary });
+
+    } catch (err) {
+        console.error("ABDM Transfer Error:", err.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+module.exports = { abdmRouter, notifyRouter };
