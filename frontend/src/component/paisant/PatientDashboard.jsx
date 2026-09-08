@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import PatientNavbar from "./patientNavbar";
 export default function PatientDashboard() {
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
@@ -23,6 +23,7 @@ export default function PatientDashboard() {
     const token = localStorage.getItem("token");
     if (!token) return navigate("/login");
     fetchData(token);
+
     // Fetch real doctors from DB
     fetch("http://localhost:8080/api/patient/doctors", {
       headers: { Authorization: `Bearer ${token}` }
@@ -45,10 +46,29 @@ export default function PatientDashboard() {
         fetch("http://localhost:8080/api/patient/bills", { headers }),
         fetch("http://localhost:8080/api/patient/prescriptions", { headers })
       ]);
-      if(histRes.ok) setHistory(await histRes.json());
-      if(repRes.ok) setReports(await repRes.json());
-      if(billRes.ok) setBills(await billRes.json());
-      if(presRes.ok) setPrescriptions(await presRes.json());
+
+      const histData = histRes.ok ? await histRes.json() : [];
+      const repData = repRes.ok ? await repRes.json() : [];
+      const billData = billRes.ok ? await billRes.json() : [];
+      const presData = presRes.ok ? await presRes.json() : [];
+
+      setHistory(histData);
+      setReports(repData);
+      setBills(billData);
+      setPrescriptions(presData);
+
+      // Extract real Patient._id from existing records and store in hmsPatientId
+      const foundPid =
+        (Array.isArray(histData) && histData[0]?.patientId) ||
+        (Array.isArray(repData) && repData[0]?.patientId) ||
+        (Array.isArray(billData) && billData[0]?.patientId) ||
+        (Array.isArray(presData) && presData[0]?.patientId);
+
+      if (foundPid) {
+        localStorage.setItem("hmsPatientId", foundPid);
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...user, patientId: foundPid }));
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -77,6 +97,11 @@ export default function PatientDashboard() {
     });
     const data = await res.json();
     if (res.ok) {
+      if (data?.appointment?.patientId) {
+        localStorage.setItem("hmsPatientId", data.appointment.patientId);
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...user, patientId: data.appointment.patientId }));
+      }
       setBookingMsg("✅ Appointment booked! Check the Doctor dashboard.");
       setSelectedSlot("");
       setSlots([]);
@@ -200,18 +225,17 @@ export default function PatientDashboard() {
   };
 
   return (
+  <>
+    <PatientNavbar />
+
     <div className="min-h-screen bg-slate-50 font-sans p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex justify-between items-center bg-teal-800 text-white p-6 rounded-2xl shadow-md">
-          <h1 className="text-3xl font-bold">Patient Portal</h1>
-          <div className="flex gap-4 items-center">
-            <span className="text-sm text-teal-200">Welcome, {JSON.parse(localStorage.getItem("user") || "{}").name || "Patient"}</span>
-            <button onClick={() => { localStorage.clear(); navigate("/login"); }} className="bg-rose-500 hover:bg-rose-600 px-4 py-2 rounded-lg font-bold transition-colors">Logout</button>
-          </div>
-        </header>
 
         {/* BOOKING SECTION */}
-        <section className="bg-white p-8 rounded-2xl shadow-sm border border-teal-100 relative overflow-hidden">
+        <section
+          id="appointments"
+          className="bg-white p-8 rounded-2xl shadow-sm border border-teal-100 relative overflow-hidden"
+        >
           <div className="absolute top-0 left-0 w-2 h-full bg-teal-500"></div>
           <h2 className="text-2xl font-bold text-slate-800 mb-6">Book New Appointment</h2>
           <form onSubmit={checkAvailability} className="flex flex-col md:flex-row gap-4 items-end">
@@ -253,7 +277,7 @@ export default function PatientDashboard() {
         </section>
 
         {/* DATA PANELS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div id="records" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[400px]">
             <h3 className="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">🏥 Medical History</h3>
             <div className="flex-1 overflow-y-auto pr-2 space-y-3">
@@ -458,5 +482,6 @@ export default function PatientDashboard() {
 
       </div>
     </div>
+     </>
   );
 }

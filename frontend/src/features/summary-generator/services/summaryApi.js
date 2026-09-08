@@ -11,6 +11,40 @@
 const BASE_URL = '/api/summary';
 
 /**
+ * Fetches a saved summary by patient ID.
+ * @param {string} patientId
+ * @returns {Promise<Object>} The summary document data
+ */
+export async function getSummaryByPatient(patientId) {
+  if (!patientId) throw new Error('Patient ID is required');
+
+  const res = await fetch(`${BASE_URL}/patient/${encodeURIComponent(patientId)}`);
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.error || json.message || 'Summary not found');
+  }
+
+  return json.data || json;
+}
+
+/**
+ * Fetches a saved summary by summary document ID.
+ * @param {string} id
+ * @returns {Promise<Object>} The summary document data
+ */
+export async function getSummaryById(id) {
+  if (!id) throw new Error('Summary ID is required');
+
+  const res = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`);
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.error || json.message || 'Summary not found');
+  }
+
+  return json.data || json;
+}
+
+/**
  * Generates or fetches an integrated clinical summary.
  * @param {Object} params
  * @param {string} [params.patientId]

@@ -79,7 +79,6 @@ export default function SummaryReviewPage() {
   const resolvedPatientId =
     searchParams.get('patientId') ||
     location.state?.patientId ||
-    location.state?.patient?._id ||
     'sample-patient-001';
 
   const {

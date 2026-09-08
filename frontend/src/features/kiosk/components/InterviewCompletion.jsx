@@ -1,8 +1,15 @@
 import React from 'react';
-import { FaCheckCircle, FaExclamationTriangle, FaArrowRight, FaPhoneAlt } from 'react-icons/fa';
+import { FaCheckCircle, FaExclamationTriangle, FaArrowRight, FaPhoneAlt, FaSpinner, FaRedo } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-export default function InterviewCompletion({ alertTriggered, redFlagDetected, redFlagSeverity, onReset }) {
+export default function InterviewCompletion({
+  alertTriggered,
+  redFlagDetected,
+  redFlagSeverity,
+  summaryStatus,
+  onRetrySummary,
+  onReset
+}) {
   const navigate = useNavigate();
 
   const handleReturnHome = () => {
@@ -44,14 +51,23 @@ export default function InterviewCompletion({ alertTriggered, redFlagDetected, r
           <span>Emergency Assistance: <strong>+91 98765 43210</strong> (Ext: 101)</span>
         </div>
 
-        <button
-          type="button"
-          className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-base sm:text-lg px-8 py-3.5 rounded-xl shadow-md shadow-rose-300/60 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer inline-flex items-center gap-2"
-          onClick={handleReturnHome}
-        >
-          <span>Return to Kiosk Main Menu</span>
-          <FaArrowRight className="text-sm" />
-        </button>
+        {summaryStatus?.success && (
+          <div className="mb-6 inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 border border-emerald-300 px-4 py-2 rounded-xl text-xs font-bold">
+            <FaCheckCircle className="text-emerald-600" />
+            <span>Consultation summary saved successfully.</span>
+          </div>
+        )}
+
+        <div>
+          <button
+            type="button"
+            className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-base sm:text-lg px-8 py-3.5 rounded-xl shadow-md shadow-rose-300/60 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer inline-flex items-center gap-2"
+            onClick={handleReturnHome}
+          >
+            <span>Return to Kiosk Main Menu</span>
+            <FaArrowRight className="text-sm" />
+          </button>
+        </div>
       </div>
     );
   }
@@ -73,6 +89,39 @@ export default function InterviewCompletion({ alertTriggered, redFlagDetected, r
       <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-lg mx-auto mb-6">
         Your preliminary health information has been recorded securely and transmitted to your doctor's clinical review dashboard.
       </p>
+
+      {/* Summary persistence status indicator */}
+      {summaryStatus?.loading && (
+        <div className="inline-flex items-center gap-2.5 bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold px-4 py-2 rounded-xl mb-6 animate-pulse">
+          <FaSpinner className="animate-spin text-sm" />
+          <span>Saving consultation summary...</span>
+        </div>
+      )}
+
+      {summaryStatus?.success && (
+        <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-4 py-2 rounded-xl mb-6">
+          <FaCheckCircle className="text-emerald-500 text-sm" />
+          <span>Clinical summary generated successfully.</span>
+        </div>
+      )}
+
+      {summaryStatus?.error && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 mb-6 text-xs text-center max-w-md mx-auto">
+          <p className="font-semibold mb-2">
+            {typeof summaryStatus.error === 'string' ? summaryStatus.error : 'Consultation completed, but your clinical summary could not be saved. Please contact staff.'}
+          </p>
+          {onRetrySummary && (
+            <button
+              type="button"
+              onClick={onRetrySummary}
+              className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            >
+              <FaRedo className="text-[10px]" />
+              <span>Retry Saving Summary</span>
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-8 text-sm text-slate-700 max-w-md mx-auto">
         <div className="font-bold text-slate-800 mb-1">Next Step</div>
