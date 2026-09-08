@@ -23,6 +23,7 @@ export default function PatientDashboard() {
     const token = localStorage.getItem("token");
     if (!token) return navigate("/login");
     fetchData(token);
+
     // Fetch real doctors from DB
     fetch("http://localhost:8080/api/patient/doctors", {
       headers: { Authorization: `Bearer ${token}` }
@@ -45,10 +46,29 @@ export default function PatientDashboard() {
         fetch("http://localhost:8080/api/patient/bills", { headers }),
         fetch("http://localhost:8080/api/patient/prescriptions", { headers })
       ]);
-      if(histRes.ok) setHistory(await histRes.json());
-      if(repRes.ok) setReports(await repRes.json());
-      if(billRes.ok) setBills(await billRes.json());
-      if(presRes.ok) setPrescriptions(await presRes.json());
+
+      const histData = histRes.ok ? await histRes.json() : [];
+      const repData = repRes.ok ? await repRes.json() : [];
+      const billData = billRes.ok ? await billRes.json() : [];
+      const presData = presRes.ok ? await presRes.json() : [];
+
+      setHistory(histData);
+      setReports(repData);
+      setBills(billData);
+      setPrescriptions(presData);
+
+      // Extract real Patient._id from existing records and store in hmsPatientId
+      const foundPid =
+        (Array.isArray(histData) && histData[0]?.patientId) ||
+        (Array.isArray(repData) && repData[0]?.patientId) ||
+        (Array.isArray(billData) && billData[0]?.patientId) ||
+        (Array.isArray(presData) && presData[0]?.patientId);
+
+      if (foundPid) {
+        localStorage.setItem("hmsPatientId", foundPid);
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...user, patientId: foundPid }));
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -77,6 +97,11 @@ export default function PatientDashboard() {
     });
     const data = await res.json();
     if (res.ok) {
+      if (data?.appointment?.patientId) {
+        localStorage.setItem("hmsPatientId", data.appointment.patientId);
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...user, patientId: data.appointment.patientId }));
+      }
       setBookingMsg("✅ Appointment booked! Check the Doctor dashboard.");
       setSelectedSlot("");
       setSlots([]);

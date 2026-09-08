@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaHospital,
@@ -11,6 +11,7 @@ import {
   FaCheck
 } from 'react-icons/fa';
 import { useInterview } from '../hooks/useInterview';
+import { generateSummary } from '../../summary-generator/services/summaryApi';
 
 import QuestionRenderer from '../components/QuestionRenderer';
 import RetryNote from '../components/RetryNote';
@@ -47,10 +48,21 @@ export default function KioskInterview() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const patientId = location.state?.patientId || localStorage.getItem("hmsPatientId") || user.patientId || null;
+
   const selectedLanguage = location.state?.language || 'en';
   const assessmentType = location.state?.assessmentType || 'modern';
 
   const [isInitialComplaint, setIsInitialComplaint] = useState(true);
+
+  // Guard against duplicate summary generation (StrictMode / re-renders)
+  const summaryGenerationStartedRef = useRef(new Set());
+  const [summaryStatus, setSummaryStatus] = useState({
+    loading: false,
+    success: false,
+    error: null
+  });
 
   const {
     sessionId,
@@ -77,6 +89,84 @@ export default function KioskInterview() {
       resetInterview();
     };
   }, [startInterview, resetInterview, selectedLanguage, assessmentType]);
+
+  // Handoff to summary module once interview is completed
+  const triggerSummaryGeneration = useCallback((summaryData, pid, sid) => {
+    if (!summaryData) {
+      console.warn('[KIOSK] Cannot generate summary — missing clinical summary');
+      return;
+    }
+
+    if (!pid) {
+      console.error('[KIOSK] Cannot generate summary — missing patient ID');
+      setSummaryStatus({
+        loading: false,
+        success: false,
+        error: 'Patient record could not be identified. Please start the consultation from the Patient Dashboard.'
+      });
+      return;
+    }
+
+    const sessionKey = sid || `${pid}-${Date.now()}`;
+    if (summaryGenerationStartedRef.current.has(sessionKey)) {
+      console.log('[KIOSK] Summary generation already in progress/completed for session:', sessionKey);
+      return;
+    }
+    summaryGenerationStartedRef.current.add(sessionKey);
+
+    const runSave = async () => {
+      setSummaryStatus({ loading: true, success: false, error: null });
+      console.log('[KIOSK] Submitting completed consultation to summary generator for patientId:', pid);
+
+      try {
+        const result = await generateSummary({
+          patientId: pid,
+          interviewData: summaryData,
+          documentTimeline: [],
+          analyzedDocuments: []
+        });
+        console.log('[KIOSK] Summary generated and saved successfully:', result);
+
+        // Cache summary on frontend for Doctor Dashboard / Review
+        if (result) {
+          try {
+            localStorage.setItem(`hmsSummary:${pid}`, JSON.stringify(result));
+          } catch (storageErr) {
+            console.warn('[KIOSK] Could not cache summary to localStorage:', storageErr);
+          }
+        }
+
+        setSummaryStatus({ loading: false, success: true, error: null });
+      } catch (err) {
+        console.error('[KIOSK] Summary generation failed:', err);
+        // Remove from started set so patient/user can retry
+        summaryGenerationStartedRef.current.delete(sessionKey);
+        setSummaryStatus({ loading: false, success: false, error: err.message || 'Failed to save summary' });
+      }
+    };
+
+    runSave();
+  }, []);
+
+  useEffect(() => {
+    if (interviewComplete && clinicalSummary) {
+      if (patientId) {
+        const timer = setTimeout(() => {
+          triggerSummaryGeneration(clinicalSummary, patientId, sessionId);
+        }, 0);
+        return () => clearTimeout(timer);
+      } else {
+        const timer = setTimeout(() => {
+          setSummaryStatus({
+            loading: false,
+            success: false,
+            error: 'Patient record could not be identified. Please start the consultation from the Patient Dashboard.'
+          });
+        }, 0);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [interviewComplete, clinicalSummary, patientId, sessionId, triggerSummaryGeneration]);
 
   const handleReturnHome = () => {
     resetInterview();
@@ -119,6 +209,8 @@ export default function KioskInterview() {
             redFlagDetected={redFlagDetected}
             redFlagSeverity={redFlagSeverity}
             clinicalSummary={clinicalSummary}
+            summaryStatus={summaryStatus}
+            onRetrySummary={() => triggerSummaryGeneration(clinicalSummary, patientId, sessionId)}
             onReset={resetInterview}
           />
         </main>

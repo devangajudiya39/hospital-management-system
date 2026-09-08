@@ -12,20 +12,20 @@ import { MdEmergency } from "react-icons/md";
 /* ── STATIC UI DATA (test type names — not DB records) ── */
 const LAB_TESTS = [
   "CBC (Complete Blood Count)", "Lipid Profile",
-  "Blood Glucose - Fasting",    "Urine Routine",
-  "Thyroid Profile (TSH)",      "Liver Function Test",
-  "X-Ray Chest PA",             "ECG 12-Lead",
-  "HbA1c",                      "Serum Creatinine",
+  "Blood Glucose - Fasting", "Urine Routine",
+  "Thyroid Profile (TSH)", "Liver Function Test",
+  "X-Ray Chest PA", "ECG 12-Lead",
+  "HbA1c", "Serum Creatinine",
 ];
 
 const NAV = [
-  { key: "schedule",     icon: <FaCalendarCheck />,         label: "Schedule"     },
-  { key: "patient",      icon: <FaUserMd />,                label: "Patient Info" },
-  { key: "notes",        icon: <FaFileMedical />,           label: "Consultation" },
+  { key: "schedule", icon: <FaCalendarCheck />, label: "Schedule" },
+  { key: "patient", icon: <FaUserMd />, label: "Patient Info" },
+  { key: "notes", icon: <FaFileMedical />, label: "Consultation" },
   { key: "prescription", icon: <FaPrescriptionBottleAlt />, label: "Prescription" },
-  { key: "lab",          icon: <FaFlask />,                 label: "Lab Tests"    },
-  { key: "reports",      icon: <FaChartBar />,              label: "Lab Reports"  },
-  { key: "rooms",        icon: <FaBed />,                   label: "Rooms"        },
+  { key: "lab", icon: <FaFlask />, label: "Lab Tests" },
+  { key: "reports", icon: <FaChartBar />, label: "Lab Reports" },
+  { key: "rooms", icon: <FaBed />, label: "Rooms" },
 ];
 
 const defaultDoctor = {
@@ -54,41 +54,41 @@ export default function Doctor_Des() {
     avatar: userData.avatar || defaultDoctor.avatar,
   };
 
-  const [active,        setActive]        = useState("schedule");
-  const [sideOpen,      setSideOpen]      = useState(false);
+  const [active, setActive] = useState("schedule");
+  const [sideOpen, setSideOpen] = useState(false);
 
   // Schedule
-  const [filterDate,    setFilterDate]    = useState(() => new Date().toISOString().split("T")[0]);
-  const [appts,         setAppts]         = useState([]);
-  const [apptLoading,   setApptLoading]   = useState(true);
+  const [filterDate, setFilterDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [appts, setAppts] = useState([]);
+  const [apptLoading, setApptLoading] = useState(true);
 
   // Patient Info
-  const [selPt,         setSelPt]         = useState("");   // appointment _id
-  const [patientData,   setPatientData]   = useState(null);
-  const [ptLoading,     setPtLoading]     = useState(false);
+  const [selPt, setSelPt] = useState("");   // appointment _id
+  const [patientData, setPatientData] = useState(null);
+  const [ptLoading, setPtLoading] = useState(false);
 
   // Consultation Notes
-  const [notes,         setNotes]         = useState("");
-  const [diagnosis,     setDiagnosis]     = useState("");
-  const [savedNotes,    setSavedNotes]    = useState({});
+  const [notes, setNotes] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [savedNotes, setSavedNotes] = useState({});
 
   // Prescription
-  const [rxRows,        setRxRows]        = useState([{ medicineId: "", dose: "", freq: "", days: "" }]);
+  const [rxRows, setRxRows] = useState([{ medicineId: "", dose: "", freq: "", days: "" }]);
   const [availableMeds, setAvailableMeds] = useState([]);
 
   // Lab Tests
-  const [selTests,      setSelTests]      = useState([]);
+  const [selTests, setSelTests] = useState([]);
 
   // Lab Reports
-  const [labReports,    setLabReports]    = useState([]);
-  const [repLoading,    setRepLoading]    = useState(false);
+  const [labReports, setLabReports] = useState([]);
+  const [repLoading, setRepLoading] = useState(false);
 
   // Rooms
-  const [rooms,         setRooms]         = useState([]);
-  const [roomLoading,   setRoomLoading]   = useState(false);
+  const [rooms, setRooms] = useState([]);
+  const [roomLoading, setRoomLoading] = useState(false);
 
   // Toast
-  const [toast,         setToast]         = useState(null);
+  const [toast, setToast] = useState(null);
 
   const token = () => localStorage.getItem("token");
   const authH = () => ({ Authorization: "Bearer " + token() });
@@ -101,16 +101,18 @@ export default function Doctor_Des() {
     setApptLoading(true);
     fetch(`${BASE}/schedule?date=${filterDate}`, { headers: authH() })
       .then(r => r.json())
-      .then(d => { setAppts(Array.isArray(d) ? d.map(a => ({
-            _id:       a._id,
-            patientId: a.patientId?._id,
-            time:      a.slot,
-            name:      a.patientId?.name || "Unknown",
-            age:       "-",
-            reason:    "Consultation",
-            status:    a.status,
-            date:      a.date
-          })) : []); setApptLoading(false); })
+      .then(d => {
+        setAppts(Array.isArray(d) ? d.map(a => ({
+          _id: a._id,
+          patientId: a.patientId?._id,
+          time: a.slot,
+          name: a.patientId?.name || "Unknown",
+          age: "-",
+          reason: "Consultation",
+          status: a.status,
+          date: a.date
+        })) : []); setApptLoading(false);
+      })
       .catch((e) => { console.error(e); setApptLoading(false); });
   }, [filterDate]);
 
@@ -200,9 +202,9 @@ export default function Doctor_Des() {
     if (!appt?.patientId) { showToast("Select a patient first"); return; }
     const medicines = rxRows.filter(r => r.medicineId).map(r => ({
       medicineId: r.medicineId,
-      dosage:     r.dose,
-      duration:   r.days + " days",
-      quantity:   parseInt(r.days, 10) * (r.freq.includes("Twice") ? 2 : r.freq.includes("Thrice") ? 3 : 1) || 1,
+      dosage: r.dose,
+      duration: r.days + " days",
+      quantity: parseInt(r.days, 10) * (r.freq.includes("Twice") ? 2 : r.freq.includes("Thrice") ? 3 : 1) || 1,
     }));
     if (medicines.length === 0) { showToast("Add at least one medicine"); return; }
     try {
@@ -238,10 +240,10 @@ export default function Doctor_Des() {
   };
 
   /* ── Helpers ── */
-  const toggleTest = t  => setSelTests(s => s.includes(t) ? s.filter(x => x !== t) : [...s, t]);
-  const addRxRow   = () => setRxRows(r => [...r, { medicineId: "", dose: "", freq: "", days: "" }]);
-  const removeRx   = i  => setRxRows(r => r.filter((_, idx) => idx !== i));
-  const updateRx   = (i, f, v) => setRxRows(r => r.map((x, idx) => idx === i ? { ...x, [f]: v } : x));
+  const toggleTest = t => setSelTests(s => s.includes(t) ? s.filter(x => x !== t) : [...s, t]);
+  const addRxRow = () => setRxRows(r => [...r, { medicineId: "", dose: "", freq: "", days: "" }]);
+  const removeRx = i => setRxRows(r => r.filter((_, idx) => idx !== i));
+  const updateRx = (i, f, v) => setRxRows(r => r.map((x, idx) => idx === i ? { ...x, [f]: v } : x));
 
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
@@ -343,9 +345,9 @@ export default function Doctor_Des() {
             </div>
             <div className="mt-3 grid grid-cols-3 gap-1.5 text-center">
               {[
-                { n: appts.length,                                        l: "Total"   },
-                { n: appts.filter(a => a.status === "completed").length,  l: "Seen"    },
-                { n: appts.filter(a => a.status === "confirmed").length,  l: "Waiting" },
+                { n: appts.length, l: "Total" },
+                { n: appts.filter(a => a.status === "completed").length, l: "Seen" },
+                { n: appts.filter(a => a.status === "confirmed").length, l: "Waiting" },
               ].map(({ n, l }) => (
                 <div key={l} className="bg-white/70 rounded-xl py-1.5">
                   <div className="text-base font-black text-teal-600">{n}</div>
@@ -395,14 +397,14 @@ export default function Doctor_Des() {
             <span className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 bg-white border border-teal-100 px-3 py-1.5 rounded-full shadow-sm">
               <FaClock className="text-teal-400 text-[10px]" /> {today}
             </span>
-            
+
             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-teal-200 shadow-sm">
               <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Filter Date:</label>
-              <input 
-                type="date" 
-                className="text-sm font-bold text-teal-700 outline-none bg-transparent cursor-pointer" 
-                value={filterDate} 
-                onChange={(e) => setFilterDate(e.target.value)} 
+              <input
+                type="date"
+                className="text-sm font-bold text-teal-700 outline-none bg-transparent cursor-pointer"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
               />
             </div>
           </div>
@@ -456,7 +458,7 @@ export default function Doctor_Des() {
                                 <FaClock className="text-[10px]" /> Waiting
                               </span>
                             )}
-                            {!["completed","confirmed"].includes(a.status) && (
+                            {!["completed", "confirmed"].includes(a.status) && (
                               <span className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 border border-teal-200 text-xs font-bold px-3 py-1 rounded-full">
                                 <span className="relative w-2 h-2 pulse-dot flex-shrink-0">
                                   <span className="block w-2 h-2 rounded-full bg-teal-400" />
@@ -471,6 +473,12 @@ export default function Doctor_Des() {
                                 className="text-xs font-bold px-3 py-1.5 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 rounded-xl transition-all"
                                 onClick={() => { setSelPt(a._id); setActive("patient"); }}>
                                 View
+                              </button>
+                              <button
+                                className="text-xs font-bold px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 rounded-xl transition-all"
+                                onClick={() => navigate(`/summary-review?patientId=${encodeURIComponent(a.patientId)}`)}
+                              >
+                                Summary
                               </button>
                               {a.status !== "completed" && (
                                 <button
@@ -788,11 +796,11 @@ export default function Doctor_Des() {
                           </div>
                           {ready
                             ? <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold px-3 py-1 rounded-full flex-shrink-0">
-                                <FaCheckCircle className="text-[10px]" /> Ready
-                              </span>
+                              <FaCheckCircle className="text-[10px]" /> Ready
+                            </span>
                             : <span className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-100 text-xs font-bold px-3 py-1 rounded-full flex-shrink-0">
-                                <FaClock className="text-[10px]" /> Pending
-                              </span>
+                              <FaClock className="text-[10px]" /> Pending
+                            </span>
                           }
                         </div>
                         {r.resultDetails && (
@@ -825,8 +833,8 @@ export default function Doctor_Des() {
                   <div className="grid grid-cols-3 gap-4">
                     {[
                       { label: "Available", count: rooms.filter(r => r.status === "available").length, cls: "text-emerald-600" },
-                      { label: "Occupied",  count: rooms.filter(r => r.status === "occupied").length,  cls: "text-rose-500"    },
-                      { label: "Total",     count: rooms.length,                                        cls: "text-teal-600"    },
+                      { label: "Occupied", count: rooms.filter(r => r.status === "occupied").length, cls: "text-rose-500" },
+                      { label: "Total", count: rooms.length, cls: "text-teal-600" },
                     ].map(s => (
                       <div key={s.label} className="bg-white rounded-2xl border border-teal-100 shadow-sm p-5 text-center card-hover">
                         <div className={`text-3xl font-black ${s.cls}`}>{s.count}</div>
@@ -856,11 +864,11 @@ export default function Doctor_Des() {
                               <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">{r.type}</div>
                               {patName
                                 ? <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold">
-                                    <FaUserMd className="text-rose-400 text-[10px]" /> {patName}
-                                  </div>
+                                  <FaUserMd className="text-rose-400 text-[10px]" /> {patName}
+                                </div>
                                 : <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
-                                    <FaCheckCircle className="text-[10px]" /> Ready for admission
-                                  </div>
+                                  <FaCheckCircle className="text-[10px]" /> Ready for admission
+                                </div>
                               }
                             </div>
                           );

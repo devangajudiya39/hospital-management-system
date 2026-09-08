@@ -44,13 +44,36 @@ export function useSummary(patientId = 'sample-patient-001') {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // Load / generate summary for patient
+  // Load / fetch saved summary for patient from frontend cache or sample generator
   const loadSummary = useCallback(async (targetPid = patientId) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const data = await generateSummary({ patientId: targetPid });
+      let data = null;
+
+      // 1. Check frontend localStorage cache for this patient's summary
+      const cached = localStorage.getItem(`hmsSummary:${targetPid}`);
+      if (cached) {
+        try {
+          data = JSON.parse(cached);
+        } catch (e) {
+          console.warn('[SUMMARY] Failed to parse cached summary from localStorage:', e);
+        }
+      }
+
+      // 2. If not in cache and it's the demo sample-patient-001, generate demo summary
+      if (!data && (targetPid === 'sample-patient-001' || targetPid === 'kiosk-patient-default')) {
+        data = await generateSummary({ patientId: targetPid });
+      }
+
+      // 3. If real patient and no cached summary exists
+      if (!data) {
+        throw new Error(
+          'Clinical summary has not been generated for this patient yet. Please complete the intake consultation from the Kiosk.'
+        );
+      }
+
       setSummary(data);
       setFormData({
         chiefComplaint: data.chiefComplaint || '',
@@ -62,7 +85,7 @@ export function useSummary(patientId = 'sample-patient-001') {
       });
     } catch (err) {
       console.error('[SUMMARY] Load error:', err);
-      setError(err.message || 'Failed to generate summary and integrate records');
+      setError(err.message || 'Failed to load summary');
     } finally {
       setIsLoading(false);
     }
@@ -94,6 +117,16 @@ export function useSummary(patientId = 'sample-patient-001') {
       });
 
       setSummary(updatedDoc);
+
+      // Persist status change into localStorage cache
+      if (patientId) {
+        try {
+          localStorage.setItem(`hmsSummary:${patientId}`, JSON.stringify(updatedDoc));
+        } catch (storageErr) {
+          console.warn('[SUMMARY] Could not update localStorage cache:', storageErr);
+        }
+      }
+
       // Sync form data with updated doc
       setFormData({
         chiefComplaint: updatedDoc.chiefComplaint || '',
@@ -117,7 +150,7 @@ export function useSummary(patientId = 'sample-patient-001') {
     } finally {
       setIsSubmitting(false);
     }
-  }, [summary, formData, showToast]);
+  }, [summary, formData, patientId, showToast]);
 
   // Switch to Hindi tab and trigger on-demand translation if not yet cached
   const handleSwitchToHindi = useCallback(async () => {

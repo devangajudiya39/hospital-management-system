@@ -14,6 +14,11 @@ export default function PatientNavbar({
     navigate("/login");
   };
 
+  const handleStartConsultation = () => {
+    const currentPatientId = localStorage.getItem("hmsPatientId") || user.patientId || null;
+    navigate("/kiosk", { state: { patientId: currentPatientId } });
+  };
+
   return (
     <header className="w-full z-40 sticky top-0">
       <style>{`
@@ -84,7 +89,7 @@ export default function PatientNavbar({
 
             {/* Start Consultation */}
             <button
-              onClick={() => navigate("/kiosk")}
+              onClick={handleStartConsultation}
               className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all hover:scale-[1.02]"
             >
               <FaHeartbeat />

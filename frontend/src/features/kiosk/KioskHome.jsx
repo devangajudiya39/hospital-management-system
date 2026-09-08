@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import {
   FaHospital,
@@ -301,10 +301,18 @@ function KioskHome() {
   };
 
 
+  const location = useLocation();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const patientId = location.state?.patientId || localStorage.getItem("hmsPatientId") || user.patientId || null;
+
   const startConsultation = () => {
-
-    navigate('/kiosk/interview', { state: { language } });
-
+    navigate('/kiosk/interview', {
+      state: {
+        patientId,
+        language,
+        assessmentType: 'modern'
+      }
+    });
   };
 
 
