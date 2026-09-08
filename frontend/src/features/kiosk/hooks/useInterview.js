@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { startInterview as apiStartInterview, submitInterviewAnswer as apiSubmitInterviewAnswer, transcribeAudio as apiTranscribeAudio } from '../services/interviewApi';
 import { convertBlobToWav } from '../utils/audioConverter';
+import { triggerStaffAlert, buildAlertPayload, getKioskSessionToken } from '../services/alertTriggerApi';
 
 export function useInterview() {
   const [sessionId, setSessionId] = useState(null);
@@ -30,6 +31,9 @@ export function useInterview() {
   const isLoadingRef = useRef(false);
   const isTranscribingRef = useRef(false);
 
+  // Task 5: Frontend dedup for alert trigger (optimization — backend Redis is authoritative)
+  const emittedAlertsRef = useRef(new Set());
+
   // Keep refs in sync with state
   const syncSetSessionId = (v) => { sessionIdRef.current = v; setSessionId(v); };
   const syncSetSelectedLanguage = (v) => { selectedLanguageRef.current = v; setSelectedLanguage(v); };
@@ -50,6 +54,7 @@ export function useInterview() {
     setRedFlagSeverity(null);
     setAlertTriggered(false);
     setClinicalSummary(null);
+    emittedAlertsRef.current.clear();
   }, []);
 
   const handleApiResponse = useCallback((data) => {
@@ -78,6 +83,28 @@ export function useInterview() {
     setRedFlagSeverity(data.red_flag_severity || null);
     setAlertTriggered(!!data.alert_triggered);
     setClinicalSummary(data.clinical_summary || null);
+
+    // ── Task 5: Trigger staff alert when Module A detects a red flag ──
+    if (data.red_flag_detected === true && data.alert_triggered === true) {
+      const alertSessionId = data.session_id || sessionIdRef.current || 'unknown';
+      const rawSeverity = (data.red_flag_severity || '').toLowerCase();
+      const dedupeKey = `${alertSessionId}:${rawSeverity}`;
+
+      // Frontend dedup: skip if already emitted for this session+severity
+      if (!emittedAlertsRef.current.has(dedupeKey)) {
+        emittedAlertsRef.current.add(dedupeKey);
+
+        const alertPayload = buildAlertPayload(data);
+        if (alertPayload) {
+          // Fire-and-forget: do not block interview on alert delivery
+          triggerStaffAlert(alertPayload).catch((err) => {
+            console.error('[ALERT] Staff alert trigger failed (non-blocking):', err.message);
+          });
+        }
+      } else {
+        console.log('[ALERT] Frontend dedup: alert already emitted for', dedupeKey);
+      }
+    }
   }, []);
 
   const startInterview = useCallback(async (lang = 'en', type = 'modern') => {

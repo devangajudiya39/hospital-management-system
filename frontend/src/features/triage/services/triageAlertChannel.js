@@ -12,7 +12,7 @@
 export const ALERT_STREAM_URL = 
   import.meta.env.VITE_ALERT_STREAM_URL || 
   import.meta.env.VITE_ALERT_WS_URL || 
-  '';
+  'http://localhost:8080/api/triage/alerts/stream';
 
 /**
  * Normalizes an incoming payload from Person 1's API into a standardized alert object.
