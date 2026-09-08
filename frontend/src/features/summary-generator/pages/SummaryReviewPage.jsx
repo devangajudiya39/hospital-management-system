@@ -79,7 +79,8 @@ export default function SummaryReviewPage() {
   const resolvedPatientId =
     searchParams.get('patientId') ||
     location.state?.patientId ||
-    'sample-patient-001';
+    location.state?.patient?._id ||
+    'kiosk-patient-default';
 
   const {
     summary,
@@ -610,7 +611,7 @@ export default function SummaryReviewPage() {
                   disabled={isSubmitting}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
                 >
-                  <FaCheckCircle />
+                  <FaCircleCheck />
                   <span>{isSubmitting ? 'Saving...' : 'Accept Summary'}</span>
                 </button>
 
