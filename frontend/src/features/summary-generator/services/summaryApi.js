@@ -16,12 +16,19 @@ const BASE_URL = '/api/summary';
  * @returns {Promise<Object>} The summary document data
  */
 export async function getSummaryByPatient(patientId) {
-  if (!patientId) throw new Error('Patient ID is required');
+  if (!patientId) {
+    console.log('[SUMMARY RETRIEVAL] patientId:', patientId);
+    console.log('[SUMMARY RETRIEVAL] response: Patient ID is required');
+    throw new Error('Patient ID is required');
+  }
 
-  const res = await fetch(`${BASE_URL}/patient/${encodeURIComponent(patientId)}`);
-  const json = await res.json();
+  const res = await fetch(`${BASE_URL}/by-patient/${encodeURIComponent(patientId)}`);
+  const json = await res.json().catch(() => ({}));
+  console.log('[SUMMARY RETRIEVAL] patientId:', patientId);
+  console.log('[SUMMARY RETRIEVAL] response:', json);
+
   if (!res.ok) {
-    throw new Error(json.error || json.message || 'Summary not found');
+    throw new Error(json.error || json.message || 'Clinical summary has not been generated for this patient yet.');
   }
 
   return json.data || json;

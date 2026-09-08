@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  generateSummary,
+  getSummaryByPatient,
   updateSummaryStatus,
   fetchHindiTranslation
 } from '../services/summaryApi';
@@ -10,7 +10,7 @@ import {
  * 
  * @param {string} patientId - Target patient identifier
  */
-export function useSummary(patientId = 'sample-patient-001') {
+export function useSummary(patientId = null) {
   const [summary, setSummary] = useState(null);
   const [formData, setFormData] = useState({
     chiefComplaint: '',
@@ -44,34 +44,34 @@ export function useSummary(patientId = 'sample-patient-001') {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // Load / fetch saved summary for patient from frontend cache or sample generator
+  // Load / fetch saved summary for patient from backend API
   const loadSummary = useCallback(async (targetPid = patientId) => {
     setIsLoading(true);
     setError(null);
 
+    if (!targetPid) {
+      console.log('[SUMMARY RETRIEVAL] patientId:', targetPid);
+      console.log('[SUMMARY RETRIEVAL] response: No patientId provided');
+      setError('Clinical summary has not been generated for this patient yet.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      let data = null;
+      // Fetch the saved summary record from GET /api/summary/by-patient/:patientId
+      const data = await getSummaryByPatient(targetPid);
 
-      // 1. Check frontend localStorage cache for this patient's summary
-      const cached = localStorage.getItem(`hmsSummary:${targetPid}`);
-      if (cached) {
-        try {
-          data = JSON.parse(cached);
-        } catch (e) {
-          console.warn('[SUMMARY] Failed to parse cached summary from localStorage:', e);
-        }
-      }
-
-      // 2. If not in cache and it's the demo sample-patient-001, generate demo summary
-      if (!data && (targetPid === 'sample-patient-001' || targetPid === 'kiosk-patient-default')) {
-        data = await generateSummary({ patientId: targetPid });
-      }
-
-      // 3. If real patient and no cached summary exists
       if (!data) {
         throw new Error(
-          'Clinical summary has not been generated for this patient yet. Please complete the intake consultation from the Kiosk.'
+          'Clinical summary has not been generated for this patient yet.'
         );
+      }
+
+      // Update localStorage cache with latest server record
+      try {
+        localStorage.setItem(`hmsSummary:${targetPid}`, JSON.stringify(data));
+      } catch (storageErr) {
+        console.warn('[SUMMARY] Could not cache summary to localStorage:', storageErr);
       }
 
       setSummary(data);
@@ -85,7 +85,7 @@ export function useSummary(patientId = 'sample-patient-001') {
       });
     } catch (err) {
       console.error('[SUMMARY] Load error:', err);
-      setError(err.message || 'Failed to load summary');
+      setError(err.message || 'Clinical summary has not been generated for this patient yet.');
     } finally {
       setIsLoading(false);
     }

@@ -80,7 +80,8 @@ export default function SummaryReviewPage() {
     searchParams.get('patientId') ||
     location.state?.patientId ||
     location.state?.patient?._id ||
-    'kiosk-patient-default';
+    localStorage.getItem('hmsPatientId') ||
+    null;
 
   const {
     summary,

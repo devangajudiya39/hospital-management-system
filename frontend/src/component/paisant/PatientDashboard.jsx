@@ -102,6 +102,20 @@ export default function PatientDashboard() {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         localStorage.setItem("user", JSON.stringify({ ...user, patientId: data.appointment.patientId }));
       }
+       if (data?.appointment) {
+    localStorage.setItem(
+      "activeAppointment",
+      JSON.stringify({
+        appointmentId: data.appointment._id,
+        doctorId: data.appointment.doctorId,
+        patientId: data.appointment.patientId,
+        date: data.appointment.date,
+        slot: data.appointment.slot,
+        status: data.appointment.status
+      })
+    );
+  }
+
       setBookingMsg("✅ Appointment booked! Check the Doctor dashboard.");
       setSelectedSlot("");
       setSlots([]);

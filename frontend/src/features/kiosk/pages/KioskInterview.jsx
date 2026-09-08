@@ -208,8 +208,8 @@ export default function KioskInterview() {
             alertTriggered={alertTriggered}
             redFlagDetected={redFlagDetected}
             redFlagSeverity={redFlagSeverity}
-            clinicalSummary={clinicalSummary}
             summaryStatus={summaryStatus}
+            patientId={patientId}
             onRetrySummary={() => triggerSummaryGeneration(clinicalSummary, patientId, sessionId)}
             onReset={resetInterview}
           />
