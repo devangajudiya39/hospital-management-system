@@ -36,6 +36,8 @@ services:
       dockerfile: ../ops/docker/Dockerfile.frontend
     ports:
       - "5173:5173"
+    environment:
+      - VITE_BACKEND_URL=http://backend:8080
 
   redis:
     image: redis:alpine

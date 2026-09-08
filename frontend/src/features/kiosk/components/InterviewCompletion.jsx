@@ -7,6 +7,7 @@ export default function InterviewCompletion({
   redFlagDetected,
   redFlagSeverity,
   summaryStatus,
+  patientId,
   onRetrySummary,
   onReset
 }) {
@@ -15,6 +16,19 @@ export default function InterviewCompletion({
   const handleReturnHome = () => {
     if (onReset) onReset();
     navigate('/kiosk');
+  };
+
+  const handleUploadDocuments = () => {
+    const targetPid =
+      patientId ||
+      localStorage.getItem("hmsPatientId") ||
+      JSON.parse(localStorage.getItem("user") || "{}")?.patientId ||
+      null;
+
+    if (onReset) onReset();
+    navigate('/document-digitization', {
+      state: { patientId: targetPid }
+    });
   };
 
   const isUrgent = alertTriggered || (redFlagDetected && redFlagSeverity === 'critical');
@@ -125,17 +139,27 @@ export default function InterviewCompletion({
 
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-8 text-sm text-slate-700 max-w-md mx-auto">
         <div className="font-bold text-slate-800 mb-1">Next Step</div>
-        <div>Please proceed to the OPD waiting lounge. Your doctor will call you shortly.</div>
+        <div>Upload prior medical prescriptions or lab reports for AI digitization, or proceed to the OPD waiting lounge.</div>
       </div>
 
-      <button
-        type="button"
-        className="teal-grad text-white font-bold text-base sm:text-lg px-10 py-3.5 rounded-xl shadow-md shadow-teal-300/40 hover:opacity-90 hover:scale-105 active:scale-[0.99] transition-all cursor-pointer inline-flex items-center gap-2"
-        onClick={handleReturnHome}
-      >
-        <span>Done • Return to Kiosk</span>
-        <FaArrowRight className="text-sm" />
-      </button>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button
+          type="button"
+          className="teal-grad text-white font-bold text-base sm:text-lg px-8 py-3.5 rounded-xl shadow-md shadow-teal-300/40 hover:opacity-90 hover:scale-105 active:scale-[0.99] transition-all cursor-pointer inline-flex items-center gap-2 w-full sm:w-auto justify-center"
+          onClick={handleUploadDocuments}
+        >
+          <span>Upload Medical Documents</span>
+          <FaArrowRight className="text-sm" />
+        </button>
+
+        <button
+          type="button"
+          className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base sm:text-lg px-8 py-3.5 rounded-xl border border-slate-300 hover:scale-105 active:scale-[0.99] transition-all cursor-pointer inline-flex items-center gap-2 w-full sm:w-auto justify-center"
+          onClick={handleReturnHome}
+        >
+          <span>Done • Return to Kiosk</span>
+        </button>
+      </div>
     </div>
   );
 }

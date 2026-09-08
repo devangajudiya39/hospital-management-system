@@ -14,10 +14,39 @@ export default function PatientNavbar({
     navigate("/login");
   };
 
-  const handleStartConsultation = () => {
-    const currentPatientId = localStorage.getItem("hmsPatientId") || user.patientId || null;
-    navigate("/kiosk", { state: { patientId: currentPatientId } });
-  };
+ const handleStartConsultation = () => {
+  const currentPatientId =
+    localStorage.getItem("hmsPatientId") ||
+    user.patientId ||
+    null;
+
+  const appointment = JSON.parse(
+    localStorage.getItem("activeAppointment") || "null"
+  );
+
+  const today = new Date().toISOString().split("T")[0];
+  const appointmentDate = appointment?.date
+    ? new Date(appointment.date).toISOString().split("T")[0]
+    : null;
+
+  if (
+    !appointment ||
+    appointment.status !== "confirmed" ||
+    appointmentDate !== today
+  ) {
+    alert(
+      "Please book an appointment for today before starting your consultation."
+    );
+    return;
+  }
+
+  navigate("/kiosk", {
+    state: {
+      patientId: currentPatientId,
+      appointmentId: appointment.appointmentId
+    }
+  });
+};
 
   return (
     <header className="w-full z-40 sticky top-0">
