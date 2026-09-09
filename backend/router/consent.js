@@ -1,9 +1,12 @@
 const express = require("express");
 const consentRouter = express.Router();
 const consentService = require("../services/consent/consentService");
+const auditService = require("../services/audit/auditService");
 const { authenticate } = require("../middleware/authMiddleware");
 
-// POST /api/consent
+// POST /api/consent — create (grant) internal consent
+// D3: CONSENT_VIEWED is logged on the GET /api/consent/check-status route.
+//     CONSENT_GRANTED is logged inside consentService.createConsent.
 consentRouter.post("/", authenticate, async (req, res) => {
   try {
     const { patientId, purpose, requestedDataTypes, expiresAt, audioConsentProvided } = req.body;
@@ -29,8 +32,55 @@ consentRouter.post("/", authenticate, async (req, res) => {
   }
 });
 
+// POST /api/consent/viewed — logs that patient viewed the consent screen
+// Called by the frontend KioskConsentPage when the consent UI is rendered.
+// Does NOT create or modify a consent record.
+consentRouter.post("/viewed", authenticate, async (req, res) => {
+  try {
+    const { patientId } = req.body;
+    await auditService.log({
+      userId: req.user.id,
+      patientId: patientId || null,
+      action: "CONSENT_VIEWED",
+      category: "CONSENT",
+      details: "Patient viewed the consent information screen",
+      resourceType: "Consent",
+      success: true,
+      ipAddress: req.ip
+    });
+    res.status(200).json({ message: "Consent view recorded" });
+  } catch (error) {
+    console.error("Consent Viewed Log Error:", error);
+    res.status(500).json({ message: "Failed to record consent view" });
+  }
+});
+
+// POST /api/consent/decline — logs that patient explicitly declined consent
+// Does NOT create a Consent document; declines are audit-only for traceability.
+consentRouter.post("/decline", authenticate, async (req, res) => {
+  try {
+    const { patientId, purpose } = req.body;
+    await auditService.log({
+      userId: req.user.id,
+      patientId: patientId || null,
+      action: "CONSENT_REJECTED",
+      category: "CONSENT",
+      details: `Patient explicitly declined consent for purpose: ${purpose || "kiosk-consultation"}`,
+      resourceType: "Consent",
+      success: true,
+      purpose: purpose || "kiosk-consultation",
+      ipAddress: req.ip
+    });
+    res.status(200).json({ message: "Consent decline recorded" });
+  } catch (error) {
+    console.error("Consent Decline Log Error:", error);
+    res.status(500).json({ message: "Failed to record consent decline" });
+  }
+});
+
 // GET /api/consent/:patientId
 consentRouter.get("/:patientId", authenticate, async (req, res) => {
+
   try {
     const Consent = require("../models/Consent");
     const consents = await Consent.find({ patientId: req.params.patientId }).sort({ createdAt: -1 });
