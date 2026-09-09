@@ -3,14 +3,14 @@ const BASE_URL = import.meta.env.VITE_INTERVIEW_API_BASE_URL || 'https://vps-nis
 /**
  * Starts a new interview session.
  */
-export async function startInterview(language = 'en', assessmentType = 'modern') {
+export async function startInterview(language = 'en', assessmentType = 'modern', initialComplaint = '', inputMode = 'touch') {
   const payload = {
-    input_mode: 'touch',
+    input_mode: inputMode || 'touch',
     language: language || 'en',
     assessment_type: assessmentType || 'modern',
     ayush_assessments: assessmentType === 'ayush' ? ['dashavidha_pariksha'] : [],
     patient_id: null,
-    patient_message: ""
+    patient_message: initialComplaint || ""
   };
 
   const response = await fetch(`${BASE_URL}/interview`, {
